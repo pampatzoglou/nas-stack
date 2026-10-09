@@ -1,0 +1,24 @@
+# Loads default set of integrations. Do not remove.
+default_config:
+
+http:
+  use_x_forwarded_for: true
+  trusted_proxies:
+    - 172.16.0.0/12  # Docker bridge range (Traefik container)
+    - 127.0.0.1
+
+# Load frontend themes from the themes folder
+frontend:
+  themes: !include_dir_merge_named themes
+
+automation: !include automations.yaml
+script: !include scripts.yaml
+scene: !include scenes.yaml
+
+# Secrets are stored in /config/secrets.yaml (mounted via Docker secrets).
+# Reference values with: !secret <key>
+# Example MQTT integration using secrets:
+# mqtt:
+#   broker: mosquitto
+#   username: !secret mqtt_username
+#   password: !secret mqtt_password

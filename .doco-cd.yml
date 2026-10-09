@@ -1,0 +1,3 @@
+# doco-cd deployment: `docker compose up` of compose.yaml as the project `nas`, on every new
+# commit to the branch the poll config names. Settings: https://doco.cd/latest/Deploy-Settings/
+name: nas

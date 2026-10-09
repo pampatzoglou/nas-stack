@@ -1,0 +1,1606 @@
+# The NAS stack, deployed by doco-cd (.doco-cd.yml) as the compose project `nas`.
+# Secrets are files on the host under /opt/secrets/nas-stack/ (see README.md), never in git.
+# =============================================================================
+# VOLUMES
+# =============================================================================
+volumes:
+  movies:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /media/movies
+  series:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /media/series
+  music:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /media/music
+  books:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /media/books
+  comics:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /media/comics
+  photos:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /media/photos
+  torrent:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /media/downloads/torrent
+  torrent_tmp:
+    driver: local
+    driver_opts:
+      type: tmpfs
+      device: tmpfs
+      o: size=6g,uid=1000,gid=1000
+  photoprism:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /media/volumes/photoprism
+  photoprism-mariadb:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /media/volumes/photoprism-mariadb
+  syncthing:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /media/volumes/syncthing
+  sync:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /media/sync
+  duplicati:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /media/volumes/duplicati
+  backup:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /backup
+  bazarr:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /media/volumes/bazarr
+  sonarr:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /media/volumes/sonarr
+  radarr:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /media/volumes/radarr
+  lidarr:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /media/volumes/lidarr
+  prowlarr:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /media/volumes/prowlarr
+  mylar3:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /media/volumes/mylar3
+  jellyfin:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /media/volumes/jellyfin
+  homeassistant:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /media/volumes/homeassistant
+  freshrss:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /media/volumes/freshrss
+  qbittorrent:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /media/volumes/qbittorrent
+  nzbget:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /media/volumes/nzbget
+  usenet:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /media/downloads/usenet
+  calibre-web:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /media/volumes/calibre-web
+  traefik:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /media/volumes/traefik
+  adguard-work:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /media/volumes/adguard/work
+  adguard-conf:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /media/volumes/adguard/conf
+  pihole-etc:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /media/volumes/pihole/etc
+  pihole-dnsmasq:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /media/volumes/pihole/dnsmasq.d
+  mosquitto:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /media/volumes/mosquitto
+
+# =============================================================================
+# SECRETS
+# =============================================================================
+secrets:
+  cloudflare_token:
+    file: /opt/secrets/nas-stack/cloudflare_token
+  photoprism_mariadb_password:
+    file: /opt/secrets/nas-stack/photoprism_mariadb_password
+  photoprism_mariadb_root_password:
+    file: /opt/secrets/nas-stack/photoprism_mariadb_root_password
+  photoprism_admin_password:
+    file: /opt/secrets/nas-stack/photoprism_admin_password
+  prowlarr_api_key:
+    file: /opt/secrets/nas-stack/prowlarr_api_key
+  duplicati_settings_encryption_key:
+    file: /opt/secrets/nas-stack/duplicati_settings_encryption_key
+  duplicati_webservice_password:
+    file: /opt/secrets/nas-stack/duplicati_webservice_password
+  homeassistant_secrets:
+    file: /opt/secrets/nas-stack/homeassistant_secrets_yaml
+
+# =============================================================================
+# NETWORKS
+# =============================================================================
+networks:
+  frontend:
+    driver: bridge
+    internal: false
+    ipam:
+      config:
+        - subnet: 172.19.0.0/16
+    labels:
+      - "network.description=Public-facing ingress/egress network"
+  backend:
+    driver: bridge
+    internal: false
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+    labels:
+      - "network.description=Private services backend network"
+  media:
+    driver: bridge
+    internal: false
+    ipam:
+      config:
+        - subnet: 172.21.0.0/16
+    labels:
+      - "network.description=Media services backend network"
+
+# =============================================================================
+# SERVICES
+# =============================================================================
+services:
+  # ---------------------------------------------------------------------------
+  # Traefik - Reverse Proxy (testing on 8880/8443; SWAG holds 80/443)
+  # ---------------------------------------------------------------------------
+  traefik:
+    image: traefik:v3.7.14@sha256:5902d68e00708015736416b62faa49d23a2e1d4415649e5831d20b79ba301508
+    container_name: traefik
+    restart: unless-stopped
+    user: "1000:1000"
+    group_add:
+      - "997"
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - frontend
+      - backend
+      - media
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    environment:
+      - CLOUDFLARE_DNS_API_TOKEN_FILE=/run/secrets/cloudflare_token
+    command:
+      - "--global.checkNewVersion=false"
+      - "--global.sendAnonymousUsage=false"
+      - "--api.dashboard=true"
+      - "--ping=true"
+      - "--entrypoints.traefik.address=:8080"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
+      - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
+      - "--entrypoints.websecure.address=:443"
+      - "--entrypoints.websecure.http.tls=true"
+      - "--entrypoints.websecure.http.tls.certResolver=letsencrypt"
+      - "--providers.docker.endpoint=unix:///var/run/docker.sock"
+      - "--providers.docker.exposedByDefault=false"
+      - "--certificatesresolvers.letsencrypt.acme.dnschallenge=true"
+      - "--certificatesresolvers.letsencrypt.acme.dnschallenge.provider=cloudflare"
+      - "--certificatesresolvers.letsencrypt.acme.dnschallenge.resolvers=1.1.1.1:53,8.8.8.8:53"
+      - "--certificatesresolvers.letsencrypt.acme.dnschallenge.propagation.delayBeforeChecks=30s"
+      - "--certificatesresolvers.letsencrypt.acme.email=pampatzoglou@gmail.com"
+      - "--certificatesresolvers.letsencrypt.acme.storage=/acme/acme.json"
+      - "--metrics.prometheus=true"
+      - "--metrics.prometheus.addEntryPointsLabels=true"
+      - "--metrics.prometheus.addRoutersLabels=true"
+      - "--metrics.prometheus.addServicesLabels=true"
+      - "--log.level=INFO"
+      - "--accesslog=true"
+    # yamllint disable-line rule:line-length
+    # - "--certificatesresolvers.letsencrypt.acme.caserver=https://acme-staging-v02.api.letsencrypt.org/directory"
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - traefik:/acme
+    ports:
+      - 80:80
+      - 443:443
+    secrets:
+      - source: cloudflare_token
+        target: /run/secrets/cloudflare_token
+        uid: "1000"
+        gid: "1000"
+        mode: 256  # 0400: YAML 1.1 reads 0400 as octal, Ansible writes it in decimal
+    labels:
+      - "com.docker.compose.service=traefik"
+      - "service.group=reverse-proxy"
+      - "service.type=web"
+      - "service.name=traefik"
+      - "service.description=Traefik - Cloud Native Reverse Proxy"
+      - "service.port=443"
+      - "traefik.enable=true"
+      - "traefik.http.middlewares.lan-only.ipallowlist.sourcerange=192.168.0.0/16,10.0.0.0/8,172.16.0.0/12,127.0.0.0/8"
+      # Shared security headers
+      - "traefik.http.middlewares.secure-headers.headers.stsSeconds=31536000"
+      - "traefik.http.middlewares.secure-headers.headers.stsIncludeSubdomains=true"
+      - "traefik.http.middlewares.secure-headers.headers.browserXssFilter=true"
+      - "traefik.http.middlewares.secure-headers.headers.contentTypeNosniff=true"
+      - "traefik.http.middlewares.secure-headers.headers.customFrameOptionsValue=SAMEORIGIN"
+      - "traefik.http.middlewares.secure-headers.headers.referrerPolicy=strict-origin-when-cross-origin"
+      - "traefik.http.middlewares.secure-headers.headers.customresponseheaders.X-Robots-Tag=noindex,nofollow"
+      # Response compression
+      - "traefik.http.middlewares.compress.compress=true"
+      # Retry on backend connection failures (e.g. during container restarts)
+      - "traefik.http.middlewares.retry.retry.attempts=3"
+      - "traefik.http.middlewares.retry.retry.initialinterval=200ms"
+      # Default middleware chain applied to all LAN-only routers
+      - "traefik.http.middlewares.default-chain.chain.middlewares=lan-only,secure-headers,compress,retry"
+      - "traefik.http.routers.traefik-dashboard.rule=Host(`traefik.xhaos.info`)"
+      - "traefik.http.routers.traefik-dashboard.entrypoints=websecure"
+      - "traefik.http.routers.traefik-dashboard.service=api@internal"
+      - "traefik.http.routers.traefik-dashboard.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.traefik-dashboard.tls.domains[0].main=xhaos.info"
+      - "traefik.http.routers.traefik-dashboard.tls.domains[0].sans=*.xhaos.info"
+      - "traefik.http.routers.traefik-dashboard.middlewares=default-chain@docker"
+    healthcheck:
+      test: ["CMD", "traefik", "healthcheck", "--ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+
+  # ---------------------------------------------------------------------------
+  # Scrutiny - Disk Health
+  # ---------------------------------------------------------------------------
+  scrutiny:
+    image: ghcr.io/analogj/scrutiny:v0.9.5-omnibus@sha256:950e3ef790558b7c9bb03f55dae565125369ea515a69cda65eca0e8345b90851
+    container_name: scrutiny
+    restart: unless-stopped
+    cap_drop:
+      - ALL
+    cap_add:
+      - SYS_RAWIO
+      - SYS_ADMIN
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - backend
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Athens
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+      - /run/udev:/run/udev:ro
+    devices:
+      - /dev/sda
+      - /dev/sdb
+      - /dev/sdc
+      - /dev/nvme0
+      - /dev/nvme1
+    expose:
+      - 8080
+    labels:
+      - "com.docker.compose.service=scrutiny"
+      - "service.group=monitoring"
+      - "service.name=disk-monitoring"
+      - "service.type=metrics"
+      - "service.description=Scrutiny - Hard Drive Health Dashboard"
+      - "service.port=8080"
+      - "traefik.enable=true"
+      - "traefik.http.routers.scrutiny.rule=Host(`scrutiny.xhaos.info`)"
+      - "traefik.http.routers.scrutiny.entrypoints=websecure"
+      - "traefik.http.routers.scrutiny.tls=true"
+      - "traefik.http.routers.scrutiny.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.scrutiny.tls.domains[0].main=scrutiny.xhaos.info"
+      - "traefik.http.services.scrutiny.loadbalancer.server.port=8080"
+      - "traefik.http.routers.scrutiny.middlewares=default-chain@docker"
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          'curl -fsS http://localhost:8080/api/health | grep -q ''"success":true''',
+        ]
+      interval: 60s
+      timeout: 15s
+      retries: 3
+      start_period: 60s
+
+  # ---------------------------------------------------------------------------
+  # smartctl-exporter
+  # ---------------------------------------------------------------------------
+  smartctl-exporter:
+    image: prometheuscommunity/smartctl-exporter:v0.15.0@sha256:4b2b5c9912c95899ad4720b3ada368e7b0d46f4c2fd6dc7d174922c325ef9855
+    container_name: smartctl-exporter
+    cap_drop:
+      - ALL
+    cap_add:
+      - SYS_RAWIO
+      - SYS_ADMIN
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /tmp:uid=0,gid=0
+    networks:
+      - backend
+    expose:
+      - 9633
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+      - /run/udev:/run/udev:ro
+    devices:
+      - /dev/sda
+      - /dev/sdb
+      - /dev/sdc
+      - /dev/nvme0
+      - /dev/nvme1
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:9633/metrics"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  # ---------------------------------------------------------------------------
+  # qBittorrent
+  # ---------------------------------------------------------------------------
+  qbittorrent:
+    image: lscr.io/linuxserver/qbittorrent:5.2.4_v2.0.15-ls479@sha256:b111319eb7fb541edc2b1c1df9cf82e68cfffd694caa9ed5e8a0eb78a5112533
+    container_name: qbittorrent
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /run:exec,uid=1000,gid=1000,mode=0755
+      - /tmp:uid=1000,gid=1000,mode=0755
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN  # s6-overlay: fix ownership during init
+      - SETUID  # s6-overlay: drop root → PUID
+      - SETGID  # s6-overlay: drop root → PGID
+      - DAC_OVERRIDE  # s6-overlay: file permission setup
+      - NET_BIND_SERVICE
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - media
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Athens
+      - WEBUI_PORT=8080
+      - TORRENTING_PORT=51413
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+      - qbittorrent:/config
+      - torrent:/downloads
+      - torrent_tmp:/downloads/incomplete
+    expose:
+      - 8080
+    ports:
+      - 51413:51413
+      - 51413:51413/udp
+    labels:
+      - "com.docker.compose.service=qbittorrent"
+      - "service.group=media"
+      - "service.name=torrent-client"
+      - "service.type=web"
+      - "service.description=qBittorrent - BitTorrent Client"
+      - "service.port=8080"
+      - "traefik.enable=true"
+      - "traefik.http.routers.qbittorrent.rule=Host(`qbittorrent.xhaos.info`)"
+      - "traefik.http.routers.qbittorrent.entrypoints=websecure"
+      - "traefik.http.routers.qbittorrent.tls=true"
+      - "traefik.http.routers.qbittorrent.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.qbittorrent.tls.domains[0].main=qbittorrent.xhaos.info"
+      - "traefik.http.services.qbittorrent.loadbalancer.server.port=8080"
+      - "traefik.http.middlewares.qbittorrent-headers.headers.customrequestheaders.X-Forwarded-Host=qbittorrent.xhaos.info"
+      - "traefik.http.routers.qbittorrent.middlewares=qbittorrent-headers@docker,default-chain@docker"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  # ---------------------------------------------------------------------------
+  # NZBGet - Usenet Client
+  # ---------------------------------------------------------------------------
+  nzbget:
+    image: lscr.io/linuxserver/nzbget:v26.3-ls266@sha256:1a25808f65b0700c3b5008740622257030bf819fa2133eb911cedaa47fc0ca2b
+    container_name: nzbget
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /run:exec,uid=1000,gid=1000,mode=0755
+      - /tmp:uid=1000,gid=1000,mode=0755
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - SETUID
+      - SETGID
+      - DAC_OVERRIDE
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - media
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Athens
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+      - nzbget:/config
+      - usenet:/downloads
+    expose:
+      - 6789
+    labels:
+      - "com.docker.compose.service=nzbget"
+      - "service.group=media"
+      - "service.name=usenet-client"
+      - "service.type=web"
+      - "service.description=NZBGet - Usenet Downloader"
+      - "service.port=6789"
+      - "traefik.enable=true"
+      - "traefik.http.routers.nzbget.rule=Host(`nzbget.xhaos.info`)"
+      - "traefik.http.routers.nzbget.entrypoints=websecure"
+      - "traefik.http.routers.nzbget.tls=true"
+      - "traefik.http.routers.nzbget.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.nzbget.tls.domains[0].main=nzbget.xhaos.info"
+      - "traefik.http.services.nzbget.loadbalancer.server.port=6789"
+      - "traefik.http.routers.nzbget.middlewares=default-chain@docker"
+  # healthcheck:
+  #   test: ["CMD-SHELL", "curl -f http://localhost:6789 || exit 1"]
+  #   interval: 30s
+  #   timeout: 10s
+  #   retries: 3
+  #   start_period: 30s
+
+  # ---------------------------------------------------------------------------
+  # Jellyfin
+  # ---------------------------------------------------------------------------
+  jellyfin:
+    image: jellyfin/jellyfin:10.11.11@sha256:0b901391a662862eddb5dc55d244d7883cbb6236ef5b9a6ea82abc78a89819f0
+    container_name: jellyfin
+    restart: unless-stopped
+    user: "1000:1000"
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /run
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - media
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Athens
+      - JELLYFIN_PublishedServerUrl=https://jellyfin.xhaos.info
+    volumes:
+      - jellyfin:/config
+      - movies:/media/movies
+      - series:/media/series
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+    expose:
+      - 8096
+      - 8920
+    ports:
+      - 8096:8096
+      - 8920:8920
+      - 1900:1900/udp
+      - 7359:7359/udp
+    labels:
+      - "com.docker.compose.service=jellyfin"
+      - "service.group=media"
+      - "service.name=media-server"
+      - "service.type=web"
+      - "service.description=Jellyfin - Open Source Media Server"
+      - "service.port=8096"
+      - "traefik.enable=true"
+      - "traefik.http.routers.jellyfin.rule=Host(`jellyfin.xhaos.info`)"
+      - "traefik.http.routers.jellyfin.entrypoints=websecure"
+      - "traefik.http.routers.jellyfin.tls=true"
+      - "traefik.http.routers.jellyfin.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.jellyfin.tls.domains[0].main=jellyfin.xhaos.info"
+      - "traefik.http.services.jellyfin.loadbalancer.server.port=8096"
+      - "traefik.http.middlewares.jellyfin-headers.headers.customrequestheaders.X-Forwarded-Proto=https"
+      - "traefik.http.middlewares.jellyfin-strip-xfo.headers.customresponseheaders.X-Frame-Options="
+      - "traefik.http.routers.jellyfin.middlewares=jellyfin-strip-xfo@docker,jellyfin-headers@docker,secure-headers@docker,compress@docker"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8096/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # ---------------------------------------------------------------------------
+  # Radarr - Movie Management
+  # ---------------------------------------------------------------------------
+  radarr:
+    image: linuxserver/radarr:6.4.4.10685-ls319@sha256:2fce439bf4e1001b55b58eac915918ed101fa51ed2d396475ecc4c99c70062c2
+    container_name: radarr
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /run:exec,uid=1000,gid=1000,mode=0755
+      - /tmp:uid=1000,gid=1000,mode=0755
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - SETUID
+      - SETGID
+      - DAC_OVERRIDE
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - media
+    depends_on:
+      qbittorrent:
+        condition: service_healthy
+      prowlarr:
+        condition: service_healthy
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Athens
+      - UMASK=022
+    volumes:
+      - radarr:/config
+      - movies:/movies
+      - torrent:/downloads
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+    expose:
+      - 7878
+    labels:
+      - "com.docker.compose.service=radarr"
+      - "service.group=media"
+      - "service.name=movie-management"
+      - "service.type=web"
+      - "service.description=Radarr - Movie Collection Manager"
+      - "service.port=7878"
+      - "traefik.enable=true"
+      - "traefik.http.routers.radarr.rule=Host(`radarr.xhaos.info`)"
+      - "traefik.http.routers.radarr.entrypoints=websecure"
+      - "traefik.http.routers.radarr.tls=true"
+      - "traefik.http.routers.radarr.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.radarr.tls.domains[0].main=radarr.xhaos.info"
+      - "traefik.http.services.radarr.loadbalancer.server.port=7878"
+      - "traefik.http.routers.radarr.middlewares=default-chain@docker"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:7878/ping || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # ---------------------------------------------------------------------------
+  # Sonarr - TV Management
+  # ---------------------------------------------------------------------------
+  sonarr:
+    image: linuxserver/sonarr:4.0.20.3014-ls326@sha256:b2ce6052dd27ede97749da56958384682f1b2b89c2c78bd0363de9d228b6bcb7
+    container_name: sonarr
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /run:exec,uid=1000,gid=1000,mode=0755
+      - /tmp:uid=1000,gid=1000,mode=0755
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - SETUID
+      - SETGID
+      - DAC_OVERRIDE
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - media
+    depends_on:
+      qbittorrent:
+        condition: service_healthy
+      prowlarr:
+        condition: service_healthy
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Athens
+      - UMASK=022
+    volumes:
+      - sonarr:/config
+      - series:/tv
+      - torrent:/downloads
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+    expose:
+      - 8989
+    labels:
+      - "com.docker.compose.service=sonarr"
+      - "service.group=media"
+      - "service.name=tv-management"
+      - "service.type=web"
+      - "service.description=Sonarr - TV Series Collection Manager"
+      - "service.port=8989"
+
+      - "traefik.enable=true"
+      - "traefik.http.routers.sonarr.rule=Host(`sonarr.xhaos.info`)"
+      - "traefik.http.routers.sonarr.entrypoints=websecure"
+      - "traefik.http.routers.sonarr.tls=true"
+      - "traefik.http.routers.sonarr.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.sonarr.tls.domains[0].main=sonarr.xhaos.info"
+
+      - "traefik.http.services.sonarr.loadbalancer.server.port=8989"
+      - "traefik.http.routers.sonarr.middlewares=default-chain@docker"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8989/ping || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # ---------------------------------------------------------------------------
+  # Bazarr - Subtitle Management
+  # ---------------------------------------------------------------------------
+  bazarr:
+    image: linuxserver/bazarr:v1.6.2-ls367@sha256:866f25e24322cbaffeb84ec06a84ef589ba0ffa33b8dc16c41dccfd434870dae
+    container_name: bazarr
+    restart:
+      unless-stopped
+    # read_only: false
+    # tmpfs:
+    #   - /run:exec,uid=1000,gid=1000,mode=0755
+    #   - /tmp:uid=1000,gid=1000,mode=0755
+    # cap_drop:
+    #   - ALL
+    # cap_add:
+    #   - CHOWN
+    #   - SETUID
+    #   - SETGID
+    #   - DAC_OVERRIDE
+    # security_opt:
+    #   - no-new-privileges:true
+    networks:
+      - media
+    depends_on:
+      radarr:
+        condition: service_healthy
+      sonarr:
+        condition: service_healthy
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Athens
+    volumes:
+      - bazarr:/config
+      - series:/tv
+      - movies:/movies
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+    expose:
+      - 6767
+    labels:
+      - "com.docker.compose.service=bazarr"
+      - "service.group=media"
+      - "service.name=subtitle-management"
+      - "service.type=web"
+      - "service.description=Bazarr - Subtitle Collection Manager"
+      - "service.port=6767"
+      - "traefik.enable=true"
+      - "traefik.http.routers.bazarr.rule=Host(`bazarr.xhaos.info`)"
+      - "traefik.http.routers.bazarr.entrypoints=websecure"
+      - "traefik.http.routers.bazarr.tls=true"
+      - "traefik.http.routers.bazarr.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.bazarr.tls.domains[0].main=bazarr.xhaos.info"
+      - "traefik.http.services.bazarr.loadbalancer.server.port=6767"
+      - "traefik.http.routers.bazarr.middlewares=default-chain@docker"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:6767 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # ---------------------------------------------------------------------------
+  # Lidarr - Music Management
+  # ---------------------------------------------------------------------------
+  lidarr:
+    image: linuxserver/lidarr:3.1.0.4875-ls43@sha256:2ef08aa615642fdb7c5821fb708d5b0d051b2539c6f75a88c6044a3b1971e742
+    container_name: lidarr
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /run:exec,uid=1000,gid=1000,mode=0755
+      - /tmp:uid=1000,gid=1000,mode=0755
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - SETUID
+      - SETGID
+      - DAC_OVERRIDE
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - media
+    depends_on:
+      qbittorrent:
+        condition: service_healthy
+      prowlarr:
+        condition: service_healthy
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Athens
+      - UMASK=022
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+      - lidarr:/config
+      - music:/music
+      - torrent:/downloads
+    expose:
+      - 8686
+    labels:
+      - "com.docker.compose.service=lidarr"
+      - "service.group=media"
+      - "service.name=music-management"
+      - "service.type=web"
+      - "service.description=Lidarr - Music Collection Manager"
+      - "service.port=8686"
+      - "traefik.enable=true"
+      - "traefik.http.routers.lidarr.rule=Host(`lidarr.xhaos.info`)"
+      - "traefik.http.routers.lidarr.entrypoints=websecure"
+      - "traefik.http.routers.lidarr.tls=true"
+      - "traefik.http.routers.lidarr.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.lidarr.tls.domains[0].main=lidarr.xhaos.info"
+      - "traefik.http.services.lidarr.loadbalancer.server.port=8686"
+      - "traefik.http.routers.lidarr.middlewares=default-chain@docker"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8686/ping || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # ---------------------------------------------------------------------------
+  # Mylar3 - Comic Management
+  # ---------------------------------------------------------------------------
+  mylar3:
+    image: lscr.io/linuxserver/mylar3:v0.11.0-ls274@sha256:3881071c0e7e6d1e2b2da009822f43690939c1d57f355b458770fb6f5d143c32
+    container_name: mylar3
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /run:exec,uid=1000,gid=1000,mode=0755
+      - /tmp:uid=1000,gid=1000,mode=0755
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - SETUID
+      - SETGID
+      - DAC_OVERRIDE
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - media
+    depends_on:
+      prowlarr:
+        condition: service_healthy
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Athens
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+      - mylar3:/config
+      - comics:/comics
+      - torrent:/downloads
+      - usenet:/downloads/usenet
+    expose:
+      - 8090
+    labels:
+      - "com.docker.compose.service=mylar3"
+      - "service.group=media"
+      - "service.name=comic-management"
+      - "service.type=web"
+      - "service.description=Mylar3 - Comic Collection Manager"
+      - "service.port=8090"
+      - "traefik.enable=true"
+      - "traefik.http.routers.mylar3.rule=Host(`mylar3.xhaos.info`)"
+      - "traefik.http.routers.mylar3.entrypoints=websecure"
+      - "traefik.http.routers.mylar3.tls=true"
+      - "traefik.http.routers.mylar3.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.mylar3.tls.domains[0].main=mylar3.xhaos.info"
+      - "traefik.http.services.mylar3.loadbalancer.server.port=8090"
+      - "traefik.http.routers.mylar3.middlewares=default-chain@docker"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8090 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # ---------------------------------------------------------------------------
+  # Calibre-Web - Book Library
+  # ---------------------------------------------------------------------------
+  calibre-web:
+    image: lscr.io/linuxserver/calibre-web:0.6.27-ls404@sha256:b73573f44704522c1d3d444d679cb461416fedbb1c0afdf063997afbf5b55a44
+    container_name: calibre-web
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /run:exec,uid=1000,gid=1000,mode=0755
+      - /tmp:uid=1000,gid=1000,mode=0755
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - SETUID
+      - SETGID
+      - DAC_OVERRIDE
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - media
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Athens
+      - DOCKER_MODS=linuxserver/mods:universal-calibre
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+      - calibre-web:/config
+      - books:/books
+    expose:
+      - 8083
+    labels:
+      - "com.docker.compose.service=calibre-web"
+      - "service.group=media"
+      - "service.name=book-library"
+      - "service.type=web"
+      - "service.description=Calibre-Web - Book Library Web UI"
+      - "service.port=8083"
+      - "traefik.enable=true"
+      - "traefik.http.routers.calibre.rule=Host(`calibre.xhaos.info`)"
+      - "traefik.http.routers.calibre.entrypoints=websecure"
+      - "traefik.http.routers.calibre.tls=true"
+      - "traefik.http.routers.calibre.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.calibre.tls.domains[0].main=calibre.xhaos.info"
+      - "traefik.http.services.calibre.loadbalancer.server.port=8083"
+      - "traefik.http.routers.calibre.middlewares=default-chain@docker"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8083 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # ---------------------------------------------------------------------------
+  # Flaresolverr - proxy server to bypass Cloudflare protection
+  # ---------------------------------------------------------------------------
+  flaresolverr:
+    image: ghcr.io/flaresolverr/flaresolverr:v3.5.2@sha256:4ad0ed7de64622f9823594bf7bc237149158fca881f875aafbdd8456f6467134
+    container_name: flaresolverr
+    restart: unless-stopped
+    environment:
+      - LOG_LEVEL=info
+      - LOG_HTML=false
+      - CAPTCHA_SOLVER=none
+      - TZ=Europe/Athens
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+    expose:
+      - 8191
+    networks:
+      - media
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8191/ || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+
+  # ---------------------------------------------------------------------------
+  # Prowlarr - Indexer Manager
+  # ---------------------------------------------------------------------------
+  prowlarr:
+    image: linuxserver/prowlarr:2.6.5.5623-ls163@sha256:20bc5fdf919b4f86f9ab9b46d0f51a3b5d3fa83108819a0e4bbbc7bc2fee11cf
+    container_name: prowlarr
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /run:exec,uid=1000,gid=1000,mode=0755
+      - /tmp:uid=1000,gid=1000,mode=0755
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - SETUID
+      - SETGID
+      - DAC_OVERRIDE
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - media
+    depends_on:
+      flaresolverr:
+        condition: service_healthy
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Athens
+      - UMASK=022
+    volumes:
+      - prowlarr:/config
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+    expose:
+      - 9696
+    secrets:
+      - source: prowlarr_api_key
+        target: /config/api_key
+    labels:
+      - "com.docker.compose.service=prowlarr"
+      - "service.group=media"
+      - "service.name=indexer-manager"
+      - "service.type=web"
+      - "service.description=Prowlarr - Indexer Manager for Sonarr and Radarr"
+      - "service.port=9696"
+      - "traefik.enable=true"
+      - "traefik.http.routers.prowlarr.rule=Host(`prowlarr.xhaos.info`)"
+      - "traefik.http.routers.prowlarr.entrypoints=websecure"
+      - "traefik.http.routers.prowlarr.tls=true"
+      - "traefik.http.routers.prowlarr.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.prowlarr.tls.domains[0].main=prowlarr.xhaos.info"
+      - "traefik.http.services.prowlarr.loadbalancer.server.port=9696"
+      - "traefik.http.routers.prowlarr.middlewares=default-chain@docker"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9696/ping || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # ---------------------------------------------------------------------------
+  # Syncthing
+  # ---------------------------------------------------------------------------
+  syncthing:
+    image: syncthing/syncthing:2.1.6@sha256:92e9a8bf559062b955ab45c7a60bc33d0b97ebdb1e5e86959b40714b482f740a
+    container_name: syncthing
+    hostname: syncthing
+    user: "1000:1000"
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /var/syncthing/cache
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - STGUIADDRESS=0.0.0.0:8384
+      # Required behind SWAG — disables host header check on the GUI.
+      # Set a GUI password in Settings → GUI after first start.
+      - STGUIINSECUREALLOWHOST=true
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+      - syncthing:/var/syncthing/config
+      - sync:/var/syncthing/sync
+    networks:
+      - backend
+    restart: unless-stopped
+    expose:
+      - 8384
+    ports:
+      - 22000:22000/tcp
+      - 22000:22000/udp
+      - 21027:21027/udp
+    labels:
+      - "com.docker.compose.service=syncthing"
+      - "service.group=productivity"
+      - "service.name=file-sync"
+      - "service.type=web"
+      - "service.description=Syncthing - Continuous File Synchronisation"
+      - "service.port=8384"
+      - "traefik.enable=true"
+      - "traefik.http.routers.syncthing.rule=Host(`syncthing.xhaos.info`)"
+      - "traefik.http.routers.syncthing.entrypoints=websecure"
+      - "traefik.http.routers.syncthing.tls=true"
+      - "traefik.http.routers.syncthing.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.syncthing.tls.domains[0].main=syncthing.xhaos.info"
+      - "traefik.http.services.syncthing.loadbalancer.server.port=8384"
+      - "traefik.http.routers.syncthing.middlewares=default-chain@docker"
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - >-
+          curl -fkLsS -m 2 127.0.0.1:8384/rest/noauth/health | grep -o --color=never OK
+          || exit 1
+      interval: 1m
+      timeout: 10s
+      retries: 3
+
+  # ---------------------------------------------------------------------------
+  # PhotoPrism
+  # ---------------------------------------------------------------------------
+  photoprism:
+    image: photoprism/photoprism:261007@sha256:fc22e7f2ee9c82b6267531cf2336d1a3683ff7692989cdc0fd67b1336b2d0be5
+    container_name: photoprism
+    restart: unless-stopped
+    stop_grace_period: 10s
+    depends_on:
+      photoprism-mariadb:
+        condition: service_healthy
+    security_opt:
+      - seccomp:unconfined
+      - apparmor:unconfined
+    networks:
+      - backend
+    expose:
+      - 2342
+    secrets:
+      - source: photoprism_admin_password
+        target: /run/secrets/photoprism_admin_password
+      - source: photoprism_mariadb_password
+        target: /run/secrets/photoprism_mariadb_password
+    environment:
+      PHOTOPRISM_ADMIN_USER: "admin"
+      PHOTOPRISM_ADMIN_PASSWORD_FILE: "/run/secrets/photoprism_admin_password"
+      PHOTOPRISM_AUTH_MODE: "password"
+      # TLS is terminated by Traefik; PhotoPrism serves plain HTTP internally
+      PHOTOPRISM_DISABLE_TLS: "true"
+      PHOTOPRISM_DEFAULT_TLS: "false"
+      PHOTOPRISM_DEFAULT_LOCALE: "en"
+      PHOTOPRISM_PLACES_LOCALE: "local"
+      PHOTOPRISM_SITE_URL: "https://photoprism.xhaos.info/"
+      PHOTOPRISM_SITE_TITLE: "PhotoPrism"
+      PHOTOPRISM_SITE_CAPTION: "AI-Powered Photos App"
+      PHOTOPRISM_LOG_LEVEL: "info"
+      PHOTOPRISM_READONLY: "false"
+      PHOTOPRISM_EXPERIMENTAL: "false"
+      PHOTOPRISM_DISABLE_CHOWN: "false"
+      PHOTOPRISM_DISABLE_WEBDAV: "false"
+      PHOTOPRISM_DISABLE_SETTINGS: "false"
+      PHOTOPRISM_DISABLE_TENSORFLOW: "false"
+      PHOTOPRISM_DISABLE_FACES: "false"
+      PHOTOPRISM_DISABLE_CLASSIFICATION: "false"
+      PHOTOPRISM_DISABLE_VECTORS: "false"
+      PHOTOPRISM_DISABLE_RAW: "false"
+      PHOTOPRISM_RAW_PRESETS: "false"
+      PHOTOPRISM_SIDECAR_YAML: "true"
+      PHOTOPRISM_BACKUP_ALBUMS: "true"
+      PHOTOPRISM_BACKUP_DATABASE: "true"
+      PHOTOPRISM_BACKUP_SCHEDULE: "daily"
+      PHOTOPRISM_INDEX_SCHEDULE: ""
+      PHOTOPRISM_AUTO_INDEX: 300
+      PHOTOPRISM_AUTO_IMPORT: -1
+      PHOTOPRISM_DETECT_NSFW: "false"
+      PHOTOPRISM_UPLOAD_NSFW: "true"
+      PHOTOPRISM_UPLOAD_ARCHIVES: "true"
+      PHOTOPRISM_UPLOAD_LIMIT: 5000
+      PHOTOPRISM_ORIGINALS_LIMIT: 5000
+      PHOTOPRISM_HTTP_COMPRESSION: "gzip"
+      PHOTOPRISM_DATABASE_DRIVER: "mysql"
+      PHOTOPRISM_DATABASE_SERVER: "photoprism-mariadb:3306"
+      PHOTOPRISM_DATABASE_NAME: "photoprism"
+      PHOTOPRISM_DATABASE_USER: "photoprism"
+      PHOTOPRISM_DATABASE_PASSWORD_FILE: "/run/secrets/photoprism_mariadb_password"
+      PHOTOPRISM_INIT: "tensorflow"
+      PHOTOPRISM_VISION_API: "false"
+    working_dir: "/photoprism"
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+      - photoprism:/photoprism/storage
+      - photos:/photoprism/originals
+      - backup:/photoprism/storage/backups
+    labels:
+      - "com.docker.compose.service=photoprism"
+      - "service.group=photos"
+      - "service.name=photo-management"
+      - "service.type=web"
+      - "service.description=PhotoPrism - AI-Powered Photos App"
+      - "service.port=2342"
+      - "traefik.enable=true"
+      - "traefik.http.routers.photoprism.rule=Host(`photoprism.xhaos.info`)"
+      - "traefik.http.routers.photoprism.entrypoints=websecure"
+      - "traefik.http.routers.photoprism.tls=true"
+      - "traefik.http.routers.photoprism.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.photoprism.tls.domains[0].main=photoprism.xhaos.info"
+      - "traefik.http.services.photoprism.loadbalancer.server.port=2342"
+      - "traefik.http.routers.photoprism.middlewares=default-chain@docker"
+    healthcheck:
+      test: ["CMD", "photoprism", "status"]
+      interval: 60s
+      timeout: 15s
+      retries: 3
+      start_period: 60s
+
+  photoprism-mariadb:
+    image: mariadb:11.8.9@sha256:93fc3fe333b6cdfb061425869c2c3a5bb2851c0c74dbebc2c940f024e7482d76
+    container_name: photoprism-mariadb
+    restart: unless-stopped
+    stop_grace_period: 5s
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /run/mysqld
+    networks:
+      - backend
+    expose:
+      - 3306
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+      - photoprism-mariadb:/var/lib/mysql
+    secrets:
+      - source: photoprism_mariadb_password
+        target: /run/secrets/photoprism_mariadb_password
+      - source: photoprism_mariadb_root_password
+        target: /run/secrets/photoprism_mariadb_root_password
+    environment:
+      MARIADB_DATABASE: "photoprism"
+      MARIADB_USER: "photoprism"
+      MARIADB_PASSWORD_FILE: "/run/secrets/photoprism_mariadb_password"
+      MARIADB_ROOT_PASSWORD_FILE: "/run/secrets/photoprism_mariadb_root_password"
+      MARIADB_AUTO_UPGRADE: "1"
+      MARIADB_INITDB_SKIP_TZINFO: "1"
+    labels:
+      - "com.docker.compose.service=mariadb"
+      - "service.group=database"
+      - "service.name=mariadb"
+      - "service.description=MariaDB - Database Server"
+      - "service.port=3306"
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  # ---------------------------------------------------------------------------
+  # Duplicati - Backups
+  # ---------------------------------------------------------------------------
+  duplicati:
+    image: lscr.io/linuxserver/duplicati:v2.4.0.1_stable_2026-10-07-ls312@sha256:4f682e9dd5413a1c3d3412d4be74b67a1ec2650b0bcafcf6df1fb4df8dbee938
+    container_name: duplicati
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /run:exec,uid=1000,gid=1000,mode=0755
+      - /tmp:uid=1000,gid=1000,mode=0755
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - SETUID
+      - SETGID
+      - DAC_OVERRIDE
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - backend
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Athens
+      - FILE__SETTINGS_ENCRYPTION_KEY=/run/secrets/duplicati_settings_encryption_key
+      - FILE__DUPLICATI__WEBSERVICE_PASSWORD=/run/secrets/duplicati_webservice_password
+    secrets:
+      - source: duplicati_settings_encryption_key
+        target: /run/secrets/duplicati_settings_encryption_key
+      - source: duplicati_webservice_password
+        target: /run/secrets/duplicati_webservice_password
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+      - duplicati:/config
+      - backup:/backups
+      - photos:/source/photos:ro
+    expose:
+      - 8200
+    labels:
+      - "com.docker.compose.service=duplicati"
+      - "service.group=backup"
+      - "service.name=backup-manager"
+      - "service.type=web"
+      - "service.description=Duplicati - Backup Solution"
+      - "service.port=8200"
+      - "traefik.enable=true"
+      - "traefik.http.routers.duplicati.rule=Host(`duplicati.xhaos.info`)"
+      - "traefik.http.routers.duplicati.entrypoints=websecure"
+      - "traefik.http.routers.duplicati.tls=true"
+      - "traefik.http.routers.duplicati.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.duplicati.tls.domains[0].main=duplicati.xhaos.info"
+      - "traefik.http.services.duplicati.loadbalancer.server.port=8200"
+      - "traefik.http.routers.duplicati.middlewares=default-chain@docker"
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8200/"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+  # ---------------------------------------------------------------------------
+  # Home Assistant
+  # ---------------------------------------------------------------------------
+  home-assistant:
+    image: lscr.io/linuxserver/homeassistant:2026.10.0-ls253@sha256:eff613532c04c2d46fa4e900d277e5bc2795ecb8cc74b734734b053085114643
+    container_name: homeassistant
+    network_mode: host
+    restart: unless-stopped
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Athens
+    secrets:
+      - source: homeassistant_secrets
+        target: /config/secrets.yaml
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+      - homeassistant:/config
+      - ./config/homeassistant/configuration.yaml:/config/configuration.yaml
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8123/"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    labels:
+      - "com.docker.compose.service=home-assistant"
+      - "service.group=home-automation"
+      - "service.name=home-assistant"
+      - "service.type=web"
+      - "service.description=Home Assistant - Home Automation Platform"
+      - "service.port=8123"
+      - "traefik.enable=true"
+      - "traefik.http.routers.homeassistant.rule=Host(`homeassistant.xhaos.info`)"
+      - "traefik.http.routers.homeassistant.entrypoints=websecure"
+      - "traefik.http.routers.homeassistant.tls=true"
+      - "traefik.http.routers.homeassistant.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.homeassistant.tls.domains[0].main=homeassistant.xhaos.info"
+      - "traefik.http.services.homeassistant.loadbalancer.server.url=http://host.docker.internal:8123"
+      - "traefik.http.routers.homeassistant.middlewares=default-chain@docker"
+
+  # ---------------------------------------------------------------------------
+  # FreshRSS
+  # ---------------------------------------------------------------------------
+  freshrss:
+    image: lscr.io/linuxserver/freshrss:1.30.1-ls324@sha256:a374a152f0338f58645fc9a18cf224cc42202103833f55782d02de54ff891ad4
+    container_name: freshrss
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /run:exec,uid=1000,gid=1000,mode=0755
+      - /tmp:uid=1000,gid=1000,mode=0755
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - SETUID
+      - SETGID
+      - DAC_OVERRIDE
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - backend
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Athens
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+      - freshrss:/config
+    expose:
+      - 80
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:80/p/i/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+    labels:
+      - "com.docker.compose.service=freshrss"
+      - "service.group=productivity"
+      - "service.name=rss-reader"
+      - "service.type=web"
+      - "service.description=FreshRSS - Self-hosted RSS Reader"
+      - "service.port=80"
+      - "traefik.enable=true"
+      - "traefik.http.routers.freshrss.rule=Host(`freshrss.xhaos.info`)"
+      - "traefik.http.routers.freshrss.entrypoints=websecure"
+      - "traefik.http.routers.freshrss.tls=true"
+      - "traefik.http.routers.freshrss.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.freshrss.tls.domains[0].main=freshrss.xhaos.info"
+      - "traefik.http.services.freshrss.loadbalancer.server.port=80"
+      - "traefik.http.routers.freshrss.middlewares=default-chain@docker"
+
+  # ---------------------------------------------------------------------------
+  # AdGuard Home - DNS and Ad Blocking
+  # ---------------------------------------------------------------------------
+  adguard:
+    image: adguard/adguardhome:v0.107.79@sha256:abadc6ec47f8ca385cb38f2abfeb11ca6a2b0277964967b1954c63e11b517f4f
+    container_name: adguard
+    restart: unless-stopped
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_BIND_SERVICE
+      - CHOWN
+      - SETUID
+      - SETGID
+      - DAC_OVERRIDE
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - backend
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+      - adguard-work:/opt/adguardhome/work
+      - adguard-conf:/opt/adguardhome/conf
+    ports:
+      - "6353:53/tcp"
+      - "6353:53/udp"
+    expose:
+      - 53
+      - 80
+      - 3000
+    labels:
+      - "com.docker.compose.service=adguard"
+      - "service.group=network"
+      - "service.name=dns-ad-blocking"
+      - "service.type=web"
+      - "service.description=AdGuard Home - DNS Server and Ad Blocker"
+      - "service.port=3000"
+      - "traefik.enable=true"
+      - "traefik.http.routers.adguard.rule=Host(`adguard.xhaos.info`)"
+      - "traefik.http.routers.adguard.entrypoints=websecure"
+      - "traefik.http.routers.adguard.tls=true"
+      - "traefik.http.routers.adguard.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.adguard.tls.domains[0].main=adguard.xhaos.info"
+      - "traefik.http.services.adguard.loadbalancer.server.port=3000"
+      - "traefik.http.routers.adguard.middlewares=default-chain@docker"
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  # ---------------------------------------------------------------------------
+  # Pi-hole - DNS and Ad Blocking
+  # ---------------------------------------------------------------------------
+  pihole:
+    image: pihole/pihole:2026.09.0@sha256:bd3fc82ee1b1473a45fc074379dcd9fd7ce3e933809c44e10c0df9b22fd5de63
+    container_name: pihole
+    restart: unless-stopped
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_BIND_SERVICE
+      - CHOWN
+      - SETUID
+      - SETGID
+      - DAC_OVERRIDE
+      - SETFCAP
+    # no-new-privileges is intentionally omitted: pihole-FTL uses setcap on its
+    # own binary at startup and requires CAP_SETFCAP to be effective, which
+    # no-new-privileges blocks even when the capability is granted.
+    networks:
+      - backend
+    environment:
+      - TZ=Europe/Athens
+      - WEBPASSWORD=""
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+      - pihole-etc:/etc/pihole
+      - pihole-dnsmasq:/etc/dnsmasq.d
+    ports:
+      - "5353:53/tcp"
+      - "5353:53/udp"
+    expose:
+      - 53
+      - 80
+    labels:
+      - "com.docker.compose.service=pihole"
+      - "service.group=network"
+      - "service.name=dns-ad-blocking"
+      - "service.type=web"
+      - "service.description=Pi-hole - DNS Sinkhole and Ad Blocker"
+      - "service.port=80"
+      - "traefik.enable=true"
+      - "traefik.http.routers.pihole.rule=Host(`pihole.xhaos.info`)"
+      - "traefik.http.routers.pihole.entrypoints=websecure"
+      - "traefik.http.routers.pihole.tls=true"
+      - "traefik.http.routers.pihole.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.pihole.tls.domains[0].main=pihole.xhaos.info"
+      - "traefik.http.services.pihole.loadbalancer.server.port=80"
+      - "traefik.http.routers.pihole.middlewares=default-chain@docker"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/admin/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  # ---------------------------------------------------------------------------
+  # Mosquitto - MQTT Broker
+  # ---------------------------------------------------------------------------
+  mosquitto:
+    image: eclipse-mosquitto:2.0.22@sha256:cba7cd79d4e48b2e668b599c100bc5bb612a2c85aada76ab5a27987ecc81e3d7
+    container_name: mosquitto
+    user: "1883:1883"
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - backend
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+      - ./config/mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+      - mosquitto:/mosquitto/data
+    ports:
+      - "1883:1883"
+    expose:
+      - 1883
+    labels:
+      - "com.docker.compose.service=mosquitto"
+      - "service.group=iot"
+      - "service.name=mqtt-broker"
+      - "service.description=Eclipse Mosquitto - MQTT Broker"
+      - "service.port=1883"
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "mosquitto_sub -h localhost -p 1883 -t '$$SYS/broker/version' -C 1 -W 3 || exit 1",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s

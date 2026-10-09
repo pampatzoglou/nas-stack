@@ -1,0 +1,3 @@
+# Secrets live on the host (/opt/secrets/nas-stack/), never here.
+secrets/
+.env

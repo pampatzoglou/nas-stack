@@ -1,0 +1,41 @@
+// Image updates for compose.yaml: every image is pinned to `<tag>@<linux/amd64 digest>`. A merged
+// PR is deployed by doco-cd on its next poll.
+{
+  $schema: 'https://docs.renovatebot.com/renovate-schema.json',
+  extends: ['config:recommended', ':semanticCommits', 'docker:pinDigests'],
+  enabledManagers: ['docker-compose'],
+  schedule: ['before 6am on monday'],
+  packageRules: [
+    {
+      // linuxserver.io: <app version>-ls<build>; a new ls build alone is a patch update.
+      matchDatasources: ['docker'],
+      matchPackageNames: ['/(^|/)linuxserver//'],
+      versioning: 'regex:^v?(?<major>\\d+)\\.(?<minor>\\d+)(?:\\.(?<patch>\\d+))?(?:\\.(?<build>\\d+))?-ls(?<revision>\\d+)$',
+    },
+    {
+      // <qBittorrent>_v<libtorrent>-ls<build>
+      matchDatasources: ['docker'],
+      matchPackageNames: ['/linuxserver/qbittorrent$/'],
+      versioning: 'regex:^(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)_v[\\d.]+-ls(?<revision>\\d+)$',
+    },
+    {
+      // v<version>_stable_<date>-ls<build>; beta/canary channels never match.
+      matchDatasources: ['docker'],
+      matchPackageNames: ['/linuxserver/duplicati$/'],
+      versioning: 'regex:^v(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)\\.(?<build>\\d+)_stable_[\\d-]+-ls(?<revision>\\d+)$',
+    },
+    {
+      // A stale v5.x tag series sits next to the real 0.6.x releases and would sort above them.
+      matchDatasources: ['docker'],
+      matchPackageNames: ['/linuxserver/calibre-web$/'],
+      allowedVersions: '/^\\d/',
+    },
+    {
+      // Database: a new major needs a data upgrade; review those by hand.
+      matchDatasources: ['docker'],
+      matchPackageNames: ['mariadb'],
+      matchUpdateTypes: ['major'],
+      addLabels: ['needs-review'],
+    },
+  ],
+}
