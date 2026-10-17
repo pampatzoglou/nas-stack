@@ -338,6 +338,7 @@ services:
       - SETUID
       - SETGID
       - DAC_OVERRIDE
+      - FOWNER  # init chmods /config, owned by the app user, not root
     security_opt:
       - no-new-privileges:true
     networks:
