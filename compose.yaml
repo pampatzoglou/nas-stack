@@ -1042,7 +1042,8 @@ services:
       - "traefik.http.services.photoprism.loadbalancer.server.port=2342"
       - "traefik.http.routers.photoprism.middlewares=default-chain@file"
     healthcheck:
-      test: ["CMD", "photoprism", "status"]
+      # Not `photoprism status`: in 261007 it dials HTTP_HOST (0.0.0.0) and always fails.
+      test: ["CMD", "curl", "-fsS", "-o", "/dev/null", "http://127.0.0.1:2342/api/v1/status"]
       interval: 60s
       timeout: 15s
       retries: 3
