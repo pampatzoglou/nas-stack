@@ -207,8 +207,6 @@ volumes:
 # SECRETS
 # =============================================================================
 secrets:
-  cloudflare_token:
-    file: /opt/secrets/nas-stack/cloudflare_token
   photoprism_mariadb_password:
     file: /opt/secrets/nas-stack/photoprism_mariadb_password
   photoprism_mariadb_root_password:
@@ -256,6 +254,8 @@ networks:
 # =============================================================================
 # SERVICES
 # =============================================================================
+# Traefik runs on the host (provision-server's traefik role). The shared middlewares
+# (default-chain, secure-headers, compress, lan-only, retry) are in its file provider: `@file`.
 services:
   # ---------------------------------------------------------------------------
   # Scrutiny - Disk Health
@@ -303,7 +303,7 @@ services:
       - "traefik.http.routers.scrutiny.tls.certresolver=letsencrypt"
       - "traefik.http.routers.scrutiny.tls.domains[0].main=scrutiny.xhaos.info"
       - "traefik.http.services.scrutiny.loadbalancer.server.port=8080"
-      - "traefik.http.routers.scrutiny.middlewares=default-chain@docker"
+      - "traefik.http.routers.scrutiny.middlewares=default-chain@file"
     healthcheck:
       test:
         [
@@ -408,7 +408,7 @@ services:
       - "traefik.http.routers.qbittorrent.tls.domains[0].main=qbittorrent.xhaos.info"
       - "traefik.http.services.qbittorrent.loadbalancer.server.port=8080"
       - "traefik.http.middlewares.qbittorrent-headers.headers.customrequestheaders.X-Forwarded-Host=qbittorrent.xhaos.info"
-      - "traefik.http.routers.qbittorrent.middlewares=qbittorrent-headers@docker,default-chain@docker"
+      - "traefik.http.routers.qbittorrent.middlewares=qbittorrent-headers@docker,default-chain@file"
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:8080 || exit 1"]
       interval: 30s
@@ -463,7 +463,7 @@ services:
       - "traefik.http.routers.nzbget.tls.certresolver=letsencrypt"
       - "traefik.http.routers.nzbget.tls.domains[0].main=nzbget.xhaos.info"
       - "traefik.http.services.nzbget.loadbalancer.server.port=6789"
-      - "traefik.http.routers.nzbget.middlewares=default-chain@docker"
+      - "traefik.http.routers.nzbget.middlewares=default-chain@file"
   # healthcheck:
   #   test: ["CMD-SHELL", "curl -f http://localhost:6789 || exit 1"]
   #   interval: 30s
@@ -524,7 +524,7 @@ services:
       - "traefik.http.services.jellyfin.loadbalancer.server.port=8096"
       - "traefik.http.middlewares.jellyfin-headers.headers.customrequestheaders.X-Forwarded-Proto=https"
       - "traefik.http.middlewares.jellyfin-strip-xfo.headers.customresponseheaders.X-Frame-Options="
-      - "traefik.http.routers.jellyfin.middlewares=jellyfin-strip-xfo@docker,jellyfin-headers@docker,secure-headers@docker,compress@docker"
+      - "traefik.http.routers.jellyfin.middlewares=jellyfin-strip-xfo@docker,jellyfin-headers@docker,secure-headers@file,compress@file"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8096/health"]
       interval: 30s
@@ -586,7 +586,7 @@ services:
       - "traefik.http.routers.radarr.tls.certresolver=letsencrypt"
       - "traefik.http.routers.radarr.tls.domains[0].main=radarr.xhaos.info"
       - "traefik.http.services.radarr.loadbalancer.server.port=7878"
-      - "traefik.http.routers.radarr.middlewares=default-chain@docker"
+      - "traefik.http.routers.radarr.middlewares=default-chain@file"
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:7878/ping || exit 1"]
       interval: 30s
@@ -650,7 +650,7 @@ services:
       - "traefik.http.routers.sonarr.tls.domains[0].main=sonarr.xhaos.info"
 
       - "traefik.http.services.sonarr.loadbalancer.server.port=8989"
-      - "traefik.http.routers.sonarr.middlewares=default-chain@docker"
+      - "traefik.http.routers.sonarr.middlewares=default-chain@file"
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:8989/ping || exit 1"]
       interval: 30s
@@ -712,7 +712,7 @@ services:
       - "traefik.http.routers.bazarr.tls.certresolver=letsencrypt"
       - "traefik.http.routers.bazarr.tls.domains[0].main=bazarr.xhaos.info"
       - "traefik.http.services.bazarr.loadbalancer.server.port=6767"
-      - "traefik.http.routers.bazarr.middlewares=default-chain@docker"
+      - "traefik.http.routers.bazarr.middlewares=default-chain@file"
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:6767 || exit 1"]
       interval: 30s
@@ -774,7 +774,7 @@ services:
       - "traefik.http.routers.lidarr.tls.certresolver=letsencrypt"
       - "traefik.http.routers.lidarr.tls.domains[0].main=lidarr.xhaos.info"
       - "traefik.http.services.lidarr.loadbalancer.server.port=8686"
-      - "traefik.http.routers.lidarr.middlewares=default-chain@docker"
+      - "traefik.http.routers.lidarr.middlewares=default-chain@file"
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:8686/ping || exit 1"]
       interval: 30s
@@ -834,7 +834,7 @@ services:
       - "traefik.http.routers.mylar3.tls.certresolver=letsencrypt"
       - "traefik.http.routers.mylar3.tls.domains[0].main=mylar3.xhaos.info"
       - "traefik.http.services.mylar3.loadbalancer.server.port=8090"
-      - "traefik.http.routers.mylar3.middlewares=default-chain@docker"
+      - "traefik.http.routers.mylar3.middlewares=default-chain@file"
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:8090 || exit 1"]
       interval: 30s
@@ -890,7 +890,7 @@ services:
       - "traefik.http.routers.calibre.tls.certresolver=letsencrypt"
       - "traefik.http.routers.calibre.tls.domains[0].main=calibre.xhaos.info"
       - "traefik.http.services.calibre.loadbalancer.server.port=8083"
-      - "traefik.http.routers.calibre.middlewares=default-chain@docker"
+      - "traefik.http.routers.calibre.middlewares=default-chain@file"
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:8083 || exit 1"]
       interval: 30s
@@ -977,7 +977,7 @@ services:
       - "traefik.http.routers.prowlarr.tls.certresolver=letsencrypt"
       - "traefik.http.routers.prowlarr.tls.domains[0].main=prowlarr.xhaos.info"
       - "traefik.http.services.prowlarr.loadbalancer.server.port=9696"
-      - "traefik.http.routers.prowlarr.middlewares=default-chain@docker"
+      - "traefik.http.routers.prowlarr.middlewares=default-chain@file"
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:9696/ping || exit 1"]
       interval: 30s
@@ -1005,7 +1005,7 @@ services:
       - PUID=1000
       - PGID=1000
       - STGUIADDRESS=0.0.0.0:8384
-      # Required behind SWAG — disables host header check on the GUI.
+      # Required behind a reverse proxy — disables host header check on the GUI.
       # Set a GUI password in Settings → GUI after first start.
       - STGUIINSECUREALLOWHOST=true
     volumes:
@@ -1036,7 +1036,7 @@ services:
       - "traefik.http.routers.syncthing.tls.certresolver=letsencrypt"
       - "traefik.http.routers.syncthing.tls.domains[0].main=syncthing.xhaos.info"
       - "traefik.http.services.syncthing.loadbalancer.server.port=8384"
-      - "traefik.http.routers.syncthing.middlewares=default-chain@docker"
+      - "traefik.http.routers.syncthing.middlewares=default-chain@file"
     healthcheck:
       test:
         - CMD-SHELL
@@ -1135,7 +1135,7 @@ services:
       - "traefik.http.routers.photoprism.tls.certresolver=letsencrypt"
       - "traefik.http.routers.photoprism.tls.domains[0].main=photoprism.xhaos.info"
       - "traefik.http.services.photoprism.loadbalancer.server.port=2342"
-      - "traefik.http.routers.photoprism.middlewares=default-chain@docker"
+      - "traefik.http.routers.photoprism.middlewares=default-chain@file"
     healthcheck:
       test: ["CMD", "photoprism", "status"]
       interval: 60s
@@ -1240,7 +1240,7 @@ services:
       - "traefik.http.routers.duplicati.tls.certresolver=letsencrypt"
       - "traefik.http.routers.duplicati.tls.domains[0].main=duplicati.xhaos.info"
       - "traefik.http.services.duplicati.loadbalancer.server.port=8200"
-      - "traefik.http.routers.duplicati.middlewares=default-chain@docker"
+      - "traefik.http.routers.duplicati.middlewares=default-chain@file"
     healthcheck:
       test: ["CMD", "curl", "-fsS", "http://localhost:8200/"]
       interval: 30s
@@ -1290,8 +1290,9 @@ services:
       - "traefik.http.routers.homeassistant.tls=true"
       - "traefik.http.routers.homeassistant.tls.certresolver=letsencrypt"
       - "traefik.http.routers.homeassistant.tls.domains[0].main=homeassistant.xhaos.info"
-      - "traefik.http.services.homeassistant.loadbalancer.server.url=http://host.docker.internal:8123"
-      - "traefik.http.routers.homeassistant.middlewares=default-chain@docker"
+      # Host network, and Traefik runs on the host: loopback.
+      - "traefik.http.services.homeassistant.loadbalancer.server.url=http://127.0.0.1:8123"
+      - "traefik.http.routers.homeassistant.middlewares=default-chain@file"
 
   # ---------------------------------------------------------------------------
   # FreshRSS
@@ -1345,7 +1346,7 @@ services:
       - "traefik.http.routers.freshrss.tls.certresolver=letsencrypt"
       - "traefik.http.routers.freshrss.tls.domains[0].main=freshrss.xhaos.info"
       - "traefik.http.services.freshrss.loadbalancer.server.port=80"
-      - "traefik.http.routers.freshrss.middlewares=default-chain@docker"
+      - "traefik.http.routers.freshrss.middlewares=default-chain@file"
 
   # ---------------------------------------------------------------------------
   # AdGuard Home - DNS and Ad Blocking
@@ -1392,7 +1393,7 @@ services:
       - "traefik.http.routers.adguard.tls.certresolver=letsencrypt"
       - "traefik.http.routers.adguard.tls.domains[0].main=adguard.xhaos.info"
       - "traefik.http.services.adguard.loadbalancer.server.port=3000"
-      - "traefik.http.routers.adguard.middlewares=default-chain@docker"
+      - "traefik.http.routers.adguard.middlewares=default-chain@file"
     healthcheck:
       test: ["CMD", "wget", "-q", "--spider", "http://localhost:3000"]
       interval: 30s
@@ -1449,7 +1450,7 @@ services:
       - "traefik.http.routers.pihole.tls.certresolver=letsencrypt"
       - "traefik.http.routers.pihole.tls.domains[0].main=pihole.xhaos.info"
       - "traefik.http.services.pihole.loadbalancer.server.port=80"
-      - "traefik.http.routers.pihole.middlewares=default-chain@docker"
+      - "traefik.http.routers.pihole.middlewares=default-chain@file"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost/admin/"]
       interval: 30s
