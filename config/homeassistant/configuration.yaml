@@ -1,6 +1,10 @@
 # Loads default set of integrations. Do not remove.
 default_config:
 
+# Device-specific config lives on the volume (/media/volumes/homeassistant/packages), not in git.
+homeassistant:
+  packages: !include_dir_named packages
+
 # HTTP (reverse proxy / trusted_proxies) is managed in the UI: Settings > System > Network.
 
 # Load frontend themes from the themes folder
