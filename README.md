@@ -11,7 +11,6 @@ provisioned by Ansible in
 | `compose.yaml`                          | the stack                                               |
 | `.doco-cd.yml`                          | doco-cd's deployment config                             |
 | `config/homeassistant/configuration.yaml` | Home Assistant's config, bind-mounted read from the repo |
-| `config/mosquitto/mosquitto.conf`       | Mosquitto's config, bind-mounted read-only              |
 
 ## Host prerequisites
 

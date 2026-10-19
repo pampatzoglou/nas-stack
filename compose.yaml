@@ -196,12 +196,6 @@ volumes:
       type: none
       o: bind
       device: /media/volumes/pihole/dnsmasq.d
-  mosquitto:
-    driver: local
-    driver_opts:
-      type: none
-      o: bind
-      device: /media/volumes/mosquitto
 
 # =============================================================================
 # SECRETS
@@ -1364,46 +1358,3 @@ services:
       timeout: 10s
       retries: 3
       start_period: 30s
-
-  # ---------------------------------------------------------------------------
-  # Mosquitto - MQTT Broker
-  # ---------------------------------------------------------------------------
-  mosquitto:
-    image: eclipse-mosquitto:2.0.22@sha256:cba7cd79d4e48b2e668b599c100bc5bb612a2c85aada76ab5a27987ecc81e3d7
-    container_name: mosquitto
-    user: "1883:1883"
-    restart: unless-stopped
-    read_only: true
-    tmpfs:
-      - /tmp
-    cap_drop:
-      - ALL
-    security_opt:
-      - no-new-privileges:true
-    networks:
-      - backend
-    volumes:
-      - /etc/localtime:/etc/localtime:ro
-      - /etc/timezone:/etc/timezone:ro
-      - ./config/mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
-      - mosquitto:/mosquitto/data
-    ports:
-      - "1883:1883"
-    expose:
-      - 1883
-    labels:
-      - "com.docker.compose.service=mosquitto"
-      - "service.group=iot"
-      - "service.name=mqtt-broker"
-      - "service.description=Eclipse Mosquitto - MQTT Broker"
-      - "service.port=1883"
-    healthcheck:
-      test:
-        [
-          "CMD-SHELL",
-          "mosquitto_sub -h localhost -p 1883 -t '$$SYS/broker/version' -C 1 -W 3 || exit 1",
-        ]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 10s
