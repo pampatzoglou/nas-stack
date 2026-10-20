@@ -886,7 +886,7 @@ services:
   # PhotoPrism
   # ---------------------------------------------------------------------------
   photoprism:
-    image: photoprism/photoprism:261007@sha256:fc22e7f2ee9c82b6267531cf2336d1a3683ff7692989cdc0fd67b1336b2d0be5
+    image: photoprism/photoprism:261007@sha256:0f85369636ad99ca9a1c33f2d04df6c590802d16b7c33b4a1ea026b595be06d1
     container_name: photoprism
     restart: unless-stopped
     stop_grace_period: 10s
