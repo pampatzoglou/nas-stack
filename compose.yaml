@@ -537,21 +537,16 @@ services:
   bazarr:
     image: linuxserver/bazarr:v1.6.2-ls367@sha256:866f25e24322cbaffeb84ec06a84ef589ba0ffa33b8dc16c41dccfd434870dae
     container_name: bazarr
-    restart:
-      unless-stopped
-    # read_only: false
-    # tmpfs:
-    #   - /run:exec,uid=1000,gid=1000,mode=0755
-    #   - /tmp:uid=1000,gid=1000,mode=0755
-    # cap_drop:
-    #   - ALL
-    # cap_add:
-    #   - CHOWN
-    #   - SETUID
-    #   - SETGID
-    #   - DAC_OVERRIDE
-    # security_opt:
-    #   - no-new-privileges:true
+    restart: unless-stopped
+    user: "1000:1000"  # PUID/PGID cannot apply on a read-only rootfs
+    read_only: true
+    tmpfs:
+      - /run:exec,uid=1000,gid=1000,mode=0755
+      - /tmp:uid=1000,gid=1000,mode=0755
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
     networks:
       - media
     depends_on:
@@ -560,8 +555,6 @@ services:
       sonarr:
         condition: service_healthy
     environment:
-      - PUID=1000
-      - PGID=1000
       - TZ=Europe/Athens
     volumes:
       - bazarr:/config
