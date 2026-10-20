@@ -348,7 +348,7 @@ services:
   # Jellyfin
   # ---------------------------------------------------------------------------
   jellyfin:
-    image: jellyfin/jellyfin:10.11.11@sha256:0b901391a662862eddb5dc55d244d7883cbb6236ef5b9a6ea82abc78a89819f0
+    image: jellyfin/jellyfin:12.2.20261005-225228@sha256:357724bf0ae27a672c7cbaa899db2d9abeb13dbd8657ccce750258a4c059d037
     container_name: jellyfin
     restart: unless-stopped
     user: "1000:1000"
