@@ -203,6 +203,8 @@ secrets:
     file: /opt/secrets/nas-stack/duplicati_webservice_password
   homeassistant_secrets:
     file: /opt/secrets/nas-stack/homeassistant_secrets_yaml
+  nordvpn_wireguard_private_key:
+    file: /opt/secrets/nas-stack/nordvpn_wireguard_private_key
 
 # =============================================================================
 # NETWORKS
@@ -240,6 +242,58 @@ networks:
 # (default-chain, secure-headers, compress, lan-only, retry) are in its file provider: `@file`.
 services:
   # ---------------------------------------------------------------------------
+  # Gluetun - NordVPN tunnel for qBittorrent
+  # ---------------------------------------------------------------------------
+  # qBittorrent shares this container's network namespace, so its web UI, Traefik labels and the
+  # `qbittorrent` DNS name the arr apps use all live here. Gluetun's firewall drops anything that
+  # isn't through the tunnel, so qBittorrent has no route out if the VPN is down.
+  gluetun:
+    image: qmcgaw/gluetun:v3.41.3@sha256:fa19cc76b2af13d57a8d3dc3066f2ada061b1c761b8aecf989b3877c0486e027
+    container_name: gluetun
+    restart: unless-stopped
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_ADMIN  # tunnel interface, routes and firewall
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      media:
+        aliases:
+          - qbittorrent
+    environment:
+      - TZ=Europe/Athens
+      - VPN_SERVICE_PROVIDER=nordvpn
+      - VPN_TYPE=wireguard
+      - SERVER_COUNTRIES=Netherlands
+    secrets:
+      # Gluetun reads /run/secrets/wireguard_private_key by default.
+      - source: nordvpn_wireguard_private_key
+        target: /run/secrets/wireguard_private_key
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+    expose:
+      - 8080
+    labels:
+      - "com.docker.compose.service=gluetun"
+      - "service.group=media"
+      - "service.name=vpn-gateway"
+      - "service.description=Gluetun - NordVPN tunnel for qBittorrent"
+      - "traefik.enable=true"
+      - "traefik.http.routers.qbittorrent.rule=Host(`qbittorrent.xhaos.info`)"
+      - "traefik.http.routers.qbittorrent.entrypoints=websecure"
+      - "traefik.http.routers.qbittorrent.tls=true"
+      - "traefik.http.routers.qbittorrent.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.qbittorrent.tls.domains[0].main=qbittorrent.xhaos.info"
+      - "traefik.http.services.qbittorrent.loadbalancer.server.port=8080"
+      - "traefik.http.middlewares.qbittorrent-headers.headers.customrequestheaders.X-Forwarded-Host=qbittorrent.xhaos.info"
+      - "traefik.http.routers.qbittorrent.middlewares=qbittorrent-headers@docker,default-chain@file"
+    # Healthcheck comes from the image: healthy only while the tunnel is up.
+
+  # ---------------------------------------------------------------------------
   # qBittorrent
   # ---------------------------------------------------------------------------
   qbittorrent:
@@ -255,23 +309,21 @@ services:
       - ALL
     security_opt:
       - no-new-privileges:true
-    networks:
-      - media
+    network_mode: service:gluetun
+    depends_on:
+      gluetun:
+        condition: service_healthy
+        restart: true  # rejoin the namespace when gluetun is recreated
     environment:
       - TZ=Europe/Athens
       - WEBUI_PORT=8080
-      - TORRENTING_PORT=51413
+      - TORRENTING_PORT=51413  # NordVPN has no port forwarding: outgoing peers only
     volumes:
       - /etc/localtime:/etc/localtime:ro
       - /etc/timezone:/etc/timezone:ro
       - qbittorrent:/config
       - torrent:/downloads
       - torrent_tmp:/downloads/incomplete
-    expose:
-      - 8080
-    ports:
-      - 51413:51413
-      - 51413:51413/udp
     labels:
       - "com.docker.compose.service=qbittorrent"
       - "service.group=media"
@@ -279,15 +331,6 @@ services:
       - "service.type=web"
       - "service.description=qBittorrent - BitTorrent Client"
       - "service.port=8080"
-      - "traefik.enable=true"
-      - "traefik.http.routers.qbittorrent.rule=Host(`qbittorrent.xhaos.info`)"
-      - "traefik.http.routers.qbittorrent.entrypoints=websecure"
-      - "traefik.http.routers.qbittorrent.tls=true"
-      - "traefik.http.routers.qbittorrent.tls.certresolver=letsencrypt"
-      - "traefik.http.routers.qbittorrent.tls.domains[0].main=qbittorrent.xhaos.info"
-      - "traefik.http.services.qbittorrent.loadbalancer.server.port=8080"
-      - "traefik.http.middlewares.qbittorrent-headers.headers.customrequestheaders.X-Forwarded-Host=qbittorrent.xhaos.info"
-      - "traefik.http.routers.qbittorrent.middlewares=qbittorrent-headers@docker,default-chain@file"
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:8080 || exit 1"]
       interval: 30s

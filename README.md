@@ -32,6 +32,7 @@ provisioned by Ansible in
   | `duplicati_settings_encryption_key`    | duplicati               |
   | `duplicati_webservice_password`        | duplicati               |
   | `homeassistant_secrets_yaml`           | home-assistant (`secrets.yaml`) |
+  | `nordvpn_wireguard_private_key`        | gluetun (qBittorrent's VPN) |
 
 ## Changing the stack
 
