@@ -26,6 +26,8 @@ provisioned by Ansible in
   |----------------------------------------|-------------------------|
   | `cloudflare_token`                     | traefik (DNS challenge) |
   | `photoprism_admin_password`            | photoprism              |
+  | `photoprism_oidc_client`               | photoprism (Google SSO client ID) |
+  | `photoprism_oidc_secret`               | photoprism (Google SSO client secret) |
   | `photoprism_mariadb_password`          | photoprism, its mariadb |
   | `photoprism_mariadb_root_password`     | photoprism's mariadb    |
   | `prowlarr_api_key`                     | prowlarr                |

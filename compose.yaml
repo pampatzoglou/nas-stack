@@ -195,6 +195,10 @@ secrets:
     file: /opt/secrets/nas-stack/photoprism_mariadb_root_password
   photoprism_admin_password:
     file: /opt/secrets/nas-stack/photoprism_admin_password
+  photoprism_oidc_client:
+    file: /opt/secrets/nas-stack/photoprism_oidc_client
+  photoprism_oidc_secret:
+    file: /opt/secrets/nas-stack/photoprism_oidc_secret
   prowlarr_api_key:
     file: /opt/secrets/nas-stack/prowlarr_api_key
   duplicati_settings_encryption_key:
@@ -905,10 +909,29 @@ services:
         target: /run/secrets/photoprism_admin_password
       - source: photoprism_mariadb_password
         target: /run/secrets/photoprism_mariadb_password
+      - source: photoprism_oidc_client
+        target: /run/secrets/photoprism_oidc_client
+      - source: photoprism_oidc_secret
+        target: /run/secrets/photoprism_oidc_secret
+    # PhotoPrism enables OIDC only when PHOTOPRISM_OIDC_SECRET itself is set (OIDC_SECRET_FILE is
+    # ignored by that check), so export both values from the secrets before handing off to /init.
+    entrypoint:
+      - /bin/sh
+      - -c
+      - |
+        PHOTOPRISM_OIDC_CLIENT="$$(cat /run/secrets/photoprism_oidc_client)" || exit 1
+        PHOTOPRISM_OIDC_SECRET="$$(cat /run/secrets/photoprism_oidc_secret)" || exit 1
+        export PHOTOPRISM_OIDC_CLIENT PHOTOPRISM_OIDC_SECRET
+        exec /init
     environment:
       PHOTOPRISM_ADMIN_USER: "admin"
       PHOTOPRISM_ADMIN_PASSWORD_FILE: "/run/secrets/photoprism_admin_password"
       PHOTOPRISM_AUTH_MODE: "password"
+      # Google sign-in; client ID and secret are exported by the entrypoint above.
+      # No self-registration: only existing users linked to a Google account can sign in.
+      PHOTOPRISM_OIDC_URI: "https://accounts.google.com"
+      PHOTOPRISM_OIDC_PROVIDER: "Google"
+      PHOTOPRISM_OIDC_SCOPES: "openid email profile"
       # TLS is terminated by Traefik; PhotoPrism serves plain HTTP internally
       PHOTOPRISM_DISABLE_TLS: "true"
       PHOTOPRISM_DEFAULT_TLS: "false"
