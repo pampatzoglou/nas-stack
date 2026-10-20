@@ -980,7 +980,7 @@ services:
       start_period: 60s
 
   photoprism-mariadb:
-    image: mariadb:11.8.9@sha256:93fc3fe333b6cdfb061425869c2c3a5bb2851c0c74dbebc2c940f024e7482d76
+    image: mariadb:13.0.2@sha256:0e4bb0f339feba125d1154fbacd36c16ec8518f52e44e1f82ecec7d6771caf39
     container_name: photoprism-mariadb
     restart: unless-stopped
     stop_grace_period: 5s
