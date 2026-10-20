@@ -41,7 +41,6 @@ Commit and push to `main`; doco-cd deploys within its poll interval (3 minutes).
 ## Image updates
 
 Every image is pinned to `<tag>@<digest>`, the digest of its `linux/amd64` manifest (the NAS's
-platform), so a deploy runs exactly the reviewed image. [Renovate](https://github.com/apps/renovate)
-(`.github/renovate.json5`) opens PRs on Monday mornings with the new tag and the new amd64
-digest; merging one deploys it. linuxserver.io's `<version>-ls<build>` tags have their own
-versioning rules there, and MariaDB major updates get a `needs-review` label (data upgrade).
+platform), so a deploy runs exactly the reviewed image. Dependabot (`.github/dependabot.yml`)
+opens PRs on Monday mornings with the new tag and digest; merging one deploys it. Minor and patch
+updates arrive as one grouped PR; each major update (e.g. a MariaDB data upgrade) gets its own.

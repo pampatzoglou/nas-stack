@@ -1,0 +1,39 @@
+# Image updates for compose.yaml: every image is pinned to `<tag>@<linux/amd64 digest>`. A merged
+# PR is deployed by doco-cd on its next poll.
+version: 2
+updates:
+  - package-ecosystem: docker-compose
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: Europe/Athens
+    commit-message:
+      prefix: chore(deps)
+    labels:
+      - dependencies
+    groups:
+      images:
+        update-types:
+          - minor
+          - patch
+    ignore:
+      - dependency-name: "*linuxserver/calibre-web"
+        versions: [">= 1.0.0"]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: Europe/Athens
+    commit-message:
+      prefix: ci(deps)
+    labels:
+      - dependencies
+    groups:
+      actions:
+        patterns:
+          - "*"

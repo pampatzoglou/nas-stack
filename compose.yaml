@@ -184,18 +184,6 @@ volumes:
       type: none
       o: bind
       device: /media/volumes/adguard/conf
-  pihole-etc:
-    driver: local
-    driver_opts:
-      type: none
-      o: bind
-      device: /media/volumes/pihole/etc
-  pihole-dnsmasq:
-    driver: local
-    driver_opts:
-      type: none
-      o: bind
-      device: /media/volumes/pihole/dnsmasq.d
 
 # =============================================================================
 # SECRETS
@@ -375,8 +363,6 @@ services:
     networks:
       - media
     environment:
-      - PUID=1000
-      - PGID=1000
       - TZ=Europe/Athens
       - JELLYFIN_PublishedServerUrl=https://jellyfin.xhaos.info
     volumes:
@@ -514,14 +500,12 @@ services:
       - "service.type=web"
       - "service.description=Sonarr - TV Series Collection Manager"
       - "service.port=8989"
-
       - "traefik.enable=true"
       - "traefik.http.routers.sonarr.rule=Host(`sonarr.xhaos.info`)"
       - "traefik.http.routers.sonarr.entrypoints=websecure"
       - "traefik.http.routers.sonarr.tls=true"
       - "traefik.http.routers.sonarr.tls.certresolver=letsencrypt"
       - "traefik.http.routers.sonarr.tls.domains[0].main=sonarr.xhaos.info"
-
       - "traefik.http.services.sonarr.loadbalancer.server.port=8989"
       - "traefik.http.routers.sonarr.middlewares=default-chain@file"
     healthcheck:
@@ -724,7 +708,6 @@ services:
       - media
     environment:
       - TZ=Europe/Athens
-      - DOCKER_MODS=linuxserver/mods:universal-calibre
     volumes:
       - /etc/localtime:/etc/localtime:ro
       - /etc/timezone:/etc/timezone:ro
@@ -761,6 +744,10 @@ services:
     image: ghcr.io/flaresolverr/flaresolverr:v3.5.2@sha256:4ad0ed7de64622f9823594bf7bc237149158fca881f875aafbdd8456f6467134
     container_name: flaresolverr
     restart: unless-stopped
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
     environment:
       - LOG_LEVEL=info
       - LOG_HTML=false
@@ -852,8 +839,6 @@ services:
     security_opt:
       - no-new-privileges:true
     environment:
-      - PUID=1000
-      - PGID=1000
       - STGUIADDRESS=0.0.0.0:8384
       # Required behind a reverse proxy — disables host header check on the GUI.
       # Set a GUI password in Settings → GUI after first start.
@@ -1244,63 +1229,6 @@ services:
       - "traefik.http.routers.adguard.middlewares=default-chain@file"
     healthcheck:
       test: ["CMD", "wget", "-q", "--spider", "http://localhost:3000"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 30s
-
-  # ---------------------------------------------------------------------------
-  # Pi-hole - DNS and Ad Blocking
-  # ---------------------------------------------------------------------------
-  pihole:
-    image: pihole/pihole:2026.09.0@sha256:bd3fc82ee1b1473a45fc074379dcd9fd7ce3e933809c44e10c0df9b22fd5de63
-    container_name: pihole
-    restart: unless-stopped
-    cap_drop:
-      - ALL
-    cap_add:
-      - NET_BIND_SERVICE
-      - CHOWN
-      - SETUID
-      - SETGID
-      - DAC_OVERRIDE
-      - SETFCAP
-    # no-new-privileges is intentionally omitted: pihole-FTL uses setcap on its
-    # own binary at startup and requires CAP_SETFCAP to be effective, which
-    # no-new-privileges blocks even when the capability is granted.
-    networks:
-      - backend
-    environment:
-      - TZ=Europe/Athens
-      - WEBPASSWORD=""
-    volumes:
-      - /etc/localtime:/etc/localtime:ro
-      - /etc/timezone:/etc/timezone:ro
-      - pihole-etc:/etc/pihole
-      - pihole-dnsmasq:/etc/dnsmasq.d
-    ports:
-      - "5353:53/tcp"
-      - "5353:53/udp"
-    expose:
-      - 53
-      - 80
-    labels:
-      - "com.docker.compose.service=pihole"
-      - "service.group=network"
-      - "service.name=dns-ad-blocking"
-      - "service.type=web"
-      - "service.description=Pi-hole - DNS Sinkhole and Ad Blocker"
-      - "service.port=80"
-      - "traefik.enable=true"
-      - "traefik.http.routers.pihole.rule=Host(`pihole.xhaos.info`)"
-      - "traefik.http.routers.pihole.entrypoints=websecure"
-      - "traefik.http.routers.pihole.tls=true"
-      - "traefik.http.routers.pihole.tls.certresolver=letsencrypt"
-      - "traefik.http.routers.pihole.tls.domains[0].main=pihole.xhaos.info"
-      - "traefik.http.services.pihole.loadbalancer.server.port=80"
-      - "traefik.http.routers.pihole.middlewares=default-chain@file"
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost/admin/"]
       interval: 30s
       timeout: 10s
       retries: 3
