@@ -20,11 +20,10 @@ provisioned by Ansible in
 - **Secrets**: files under `/opt/secrets/nas-stack/`, root-owned, `0600`. Not in git (the
   repository is public); to move to doco-cd's Bitwarden integration later. Compose mounts them
   with the host file's owner and mode (a secret's `uid`/`gid`/`mode` only apply in Swarm), so
-  `cloudflare_token` must be owned by `1000`, the user traefik runs as.
+  `prowlarr_api_key` must be readable by `1000`, the user prowlarr runs as.
 
   | File                                   | Used by                 |
   |----------------------------------------|-------------------------|
-  | `cloudflare_token`                     | traefik (DNS challenge) |
   | `photoprism_admin_password`            | photoprism              |
   | `photoprism_oidc_client`               | photoprism (Google SSO client ID) |
   | `photoprism_oidc_secret`               | photoprism (Google SSO client secret) |

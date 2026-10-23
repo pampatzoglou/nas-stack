@@ -166,12 +166,6 @@ volumes:
       type: none
       o: bind
       device: /media/volumes/calibre-web
-  traefik:
-    driver: local
-    driver_opts:
-      type: none
-      o: bind
-      device: /media/volumes/traefik
   adguard-work:
     driver: local
     driver_opts:
@@ -212,22 +206,18 @@ secrets:
 # NETWORKS
 # =============================================================================
 networks:
-  frontend:
-    driver: bridge
-    internal: false
-    ipam:
-      config:
-        - subnet: 172.19.0.0/16
-    labels:
-      - "network.description=Public-facing ingress/egress network"
   backend:
     driver: bridge
-    internal: false
+    internal: true
     ipam:
       config:
         - subnet: 172.20.0.0/16
     labels:
-      - "network.description=Private services backend network"
+      - "network.description=PhotoPrism database network, no egress"
+  default:
+    driver: bridge
+    labels:
+      - "network.description=Standalone services that talk to no other service"
   media:
     driver: bridge
     internal: false
@@ -250,6 +240,7 @@ services:
     image: lscr.io/linuxserver/qbittorrent:5.2.4_v2.0.15-ls479@sha256:b111319eb7fb541edc2b1c1df9cf82e68cfffd694caa9ed5e8a0eb78a5112533
     container_name: qbittorrent
     restart: unless-stopped
+    runtime: runsc
     user: "1000:1000"  # PUID/PGID cannot apply on a read-only rootfs
     read_only: true
     tmpfs:
@@ -266,8 +257,6 @@ services:
       - WEBUI_PORT=8080
       - TORRENTING_PORT=51413
     volumes:
-      - /etc/localtime:/etc/localtime:ro
-      - /etc/timezone:/etc/timezone:ro
       - qbittorrent:/config
       - torrent:/downloads
       - torrent_tmp:/downloads/incomplete
@@ -277,7 +266,6 @@ services:
       - 51413:51413
       - 51413:51413/udp
     labels:
-      - "com.docker.compose.service=qbittorrent"
       - "service.group=media"
       - "service.name=torrent-client"
       - "service.type=web"
@@ -306,6 +294,7 @@ services:
     image: lscr.io/linuxserver/nzbget:v26.3-ls266@sha256:1a25808f65b0700c3b5008740622257030bf819fa2133eb911cedaa47fc0ca2b
     container_name: nzbget
     restart: unless-stopped
+    runtime: runsc
     user: "1000:1000"  # PUID/PGID cannot apply on a read-only rootfs
     read_only: true
     tmpfs:
@@ -320,14 +309,11 @@ services:
     environment:
       - TZ=Europe/Athens
     volumes:
-      - /etc/localtime:/etc/localtime:ro
-      - /etc/timezone:/etc/timezone:ro
       - nzbget:/config
       - usenet:/downloads
     expose:
       - 6789
     labels:
-      - "com.docker.compose.service=nzbget"
       - "service.group=media"
       - "service.name=usenet-client"
       - "service.type=web"
@@ -341,12 +327,6 @@ services:
       - "traefik.http.routers.nzbget.tls.domains[0].main=nzbget.xhaos.info"
       - "traefik.http.services.nzbget.loadbalancer.server.port=6789"
       - "traefik.http.routers.nzbget.middlewares=default-chain@file"
-  # healthcheck:
-  #   test: ["CMD-SHELL", "curl -f http://localhost:6789 || exit 1"]
-  #   interval: 30s
-  #   timeout: 10s
-  #   retries: 3
-  #   start_period: 30s
 
   # ---------------------------------------------------------------------------
   # Jellyfin
@@ -355,6 +335,7 @@ services:
     image: jellyfin/jellyfin:12.2.20261005-225228@sha256:357724bf0ae27a672c7cbaa899db2d9abeb13dbd8657ccce750258a4c059d037
     container_name: jellyfin
     restart: unless-stopped
+    runtime: runsc
     user: "1000:1000"
     read_only: true
     tmpfs:
@@ -373,8 +354,6 @@ services:
       - jellyfin:/config
       - movies:/media/movies
       - series:/media/series
-      - /etc/localtime:/etc/localtime:ro
-      - /etc/timezone:/etc/timezone:ro
     expose:
       - 8096
       - 8920
@@ -384,7 +363,6 @@ services:
       - 1900:1900/udp
       - 7359:7359/udp
     labels:
-      - "com.docker.compose.service=jellyfin"
       - "service.group=media"
       - "service.name=media-server"
       - "service.type=web"
@@ -414,6 +392,7 @@ services:
     image: linuxserver/radarr:6.4.4.10685-ls319@sha256:2fce439bf4e1001b55b58eac915918ed101fa51ed2d396475ecc4c99c70062c2
     container_name: radarr
     restart: unless-stopped
+    runtime: runsc
     user: "1000:1000"  # PUID/PGID cannot apply on a read-only rootfs
     read_only: true
     tmpfs:
@@ -437,12 +416,9 @@ services:
       - radarr:/config
       - movies:/movies
       - torrent:/downloads
-      - /etc/localtime:/etc/localtime:ro
-      - /etc/timezone:/etc/timezone:ro
     expose:
       - 7878
     labels:
-      - "com.docker.compose.service=radarr"
       - "service.group=media"
       - "service.name=movie-management"
       - "service.type=web"
@@ -470,6 +446,7 @@ services:
     image: linuxserver/sonarr:4.0.20.3014-ls326@sha256:b2ce6052dd27ede97749da56958384682f1b2b89c2c78bd0363de9d228b6bcb7
     container_name: sonarr
     restart: unless-stopped
+    runtime: runsc
     user: "1000:1000"  # PUID/PGID cannot apply on a read-only rootfs
     read_only: true
     tmpfs:
@@ -493,12 +470,9 @@ services:
       - sonarr:/config
       - series:/tv
       - torrent:/downloads
-      - /etc/localtime:/etc/localtime:ro
-      - /etc/timezone:/etc/timezone:ro
     expose:
       - 8989
     labels:
-      - "com.docker.compose.service=sonarr"
       - "service.group=media"
       - "service.name=tv-management"
       - "service.type=web"
@@ -526,6 +500,7 @@ services:
     image: linuxserver/bazarr:v1.6.2-ls367@sha256:c1673816321156b904af9b7e6415ea547ae9622e4acc375358f1e1eb9ed1e904
     container_name: bazarr
     restart: unless-stopped
+    runtime: runsc
     user: "1000:1000"  # PUID/PGID cannot apply on a read-only rootfs
     read_only: true
     tmpfs:
@@ -548,12 +523,9 @@ services:
       - bazarr:/config
       - series:/tv
       - movies:/movies
-      - /etc/localtime:/etc/localtime:ro
-      - /etc/timezone:/etc/timezone:ro
     expose:
       - 6767
     labels:
-      - "com.docker.compose.service=bazarr"
       - "service.group=media"
       - "service.name=subtitle-management"
       - "service.type=web"
@@ -581,6 +553,7 @@ services:
     image: linuxserver/lidarr:3.1.0.4875-ls43@sha256:67887807b13ae025c0fe979da298347c8609969087ab064c81d8e9acc1e06bbf
     container_name: lidarr
     restart: unless-stopped
+    runtime: runsc
     user: "1000:1000"  # PUID/PGID cannot apply on a read-only rootfs
     read_only: true
     tmpfs:
@@ -601,15 +574,12 @@ services:
       - TZ=Europe/Athens
       - UMASK=022
     volumes:
-      - /etc/localtime:/etc/localtime:ro
-      - /etc/timezone:/etc/timezone:ro
       - lidarr:/config
       - music:/music
       - torrent:/downloads
     expose:
       - 8686
     labels:
-      - "com.docker.compose.service=lidarr"
       - "service.group=media"
       - "service.name=music-management"
       - "service.type=web"
@@ -637,6 +607,7 @@ services:
     image: lscr.io/linuxserver/mylar3:v0.11.0-ls274@sha256:3881071c0e7e6d1e2b2da009822f43690939c1d57f355b458770fb6f5d143c32
     container_name: mylar3
     restart: unless-stopped
+    runtime: runsc
     read_only: true  # no non-root support: runs as abc 911:1001, PUID/PGID ignored
     tmpfs:
       - /run:exec,uid=1000,gid=1000,mode=0755
@@ -658,8 +629,6 @@ services:
     environment:
       - TZ=Europe/Athens
     volumes:
-      - /etc/localtime:/etc/localtime:ro
-      - /etc/timezone:/etc/timezone:ro
       - mylar3:/config
       - comics:/comics
       - torrent:/downloads
@@ -667,7 +636,6 @@ services:
     expose:
       - 8090
     labels:
-      - "com.docker.compose.service=mylar3"
       - "service.group=media"
       - "service.name=comic-management"
       - "service.type=web"
@@ -695,6 +663,7 @@ services:
     image: lscr.io/linuxserver/calibre-web:0.6.27-ls404@sha256:b73573f44704522c1d3d444d679cb461416fedbb1c0afdf063997afbf5b55a44
     container_name: calibre-web
     restart: unless-stopped
+    runtime: runsc
     read_only: true  # no non-root support: runs as abc 911:1001, PUID/PGID ignored
     tmpfs:
       - /run:exec,uid=1000,gid=1000,mode=0755
@@ -713,14 +682,11 @@ services:
     environment:
       - TZ=Europe/Athens
     volumes:
-      - /etc/localtime:/etc/localtime:ro
-      - /etc/timezone:/etc/timezone:ro
       - calibre-web:/config
       - books:/books
     expose:
       - 8083
     labels:
-      - "com.docker.compose.service=calibre-web"
       - "service.group=media"
       - "service.name=book-library"
       - "service.type=web"
@@ -748,6 +714,7 @@ services:
     image: ghcr.io/flaresolverr/flaresolverr:v3.5.2@sha256:4ad0ed7de64622f9823594bf7bc237149158fca881f875aafbdd8456f6467134
     container_name: flaresolverr
     restart: unless-stopped
+    runtime: runsc
     cap_drop:
       - ALL
     security_opt:
@@ -757,9 +724,6 @@ services:
       - LOG_HTML=false
       - CAPTCHA_SOLVER=none
       - TZ=Europe/Athens
-    volumes:
-      - /etc/localtime:/etc/localtime:ro
-      - /etc/timezone:/etc/timezone:ro
     expose:
       - 8191
     networks:
@@ -778,6 +742,7 @@ services:
     image: linuxserver/prowlarr:2.6.5.5623-ls163@sha256:20bc5fdf919b4f86f9ab9b46d0f51a3b5d3fa83108819a0e4bbbc7bc2fee11cf
     container_name: prowlarr
     restart: unless-stopped
+    runtime: runsc
     user: "1000:1000"  # PUID/PGID cannot apply on a read-only rootfs
     read_only: true
     tmpfs:
@@ -797,15 +762,12 @@ services:
       - UMASK=022
     volumes:
       - prowlarr:/config
-      - /etc/localtime:/etc/localtime:ro
-      - /etc/timezone:/etc/timezone:ro
     expose:
       - 9696
     secrets:
       - source: prowlarr_api_key
         target: /config/api_key
     labels:
-      - "com.docker.compose.service=prowlarr"
       - "service.group=media"
       - "service.name=indexer-manager"
       - "service.type=web"
@@ -843,17 +805,16 @@ services:
     security_opt:
       - no-new-privileges:true
     environment:
+      - TZ=Europe/Athens
       - STGUIADDRESS=0.0.0.0:8384
       # Required behind a reverse proxy — disables host header check on the GUI.
       # Set a GUI password in Settings → GUI after first start.
       - STGUIINSECUREALLOWHOST=true
     volumes:
-      - /etc/localtime:/etc/localtime:ro
-      - /etc/timezone:/etc/timezone:ro
       - syncthing:/var/syncthing/config
       - sync:/var/syncthing/sync
     networks:
-      - backend
+      - default
     restart: unless-stopped
     expose:
       - 8384
@@ -862,7 +823,6 @@ services:
       - 22000:22000/udp
       - 21027:21027/udp
     labels:
-      - "com.docker.compose.service=syncthing"
       - "service.group=productivity"
       - "service.name=file-sync"
       - "service.type=web"
@@ -902,6 +862,7 @@ services:
       - apparmor:unconfined
     networks:
       - backend
+      - default
     expose:
       - 2342
     secrets:
@@ -924,6 +885,7 @@ services:
         export PHOTOPRISM_OIDC_CLIENT PHOTOPRISM_OIDC_SECRET
         exec /init
     environment:
+      TZ: "Europe/Athens"
       PHOTOPRISM_ADMIN_USER: "admin"
       PHOTOPRISM_ADMIN_PASSWORD_FILE: "/run/secrets/photoprism_admin_password"
       PHOTOPRISM_AUTH_MODE: "password"
@@ -974,13 +936,10 @@ services:
       PHOTOPRISM_VISION_API: "false"
     working_dir: "/photoprism"
     volumes:
-      - /etc/localtime:/etc/localtime:ro
-      - /etc/timezone:/etc/timezone:ro
       - photoprism:/photoprism/storage
       - photos:/photoprism/originals
       - backup:/photoprism/storage/backups
     labels:
-      - "com.docker.compose.service=photoprism"
       - "service.group=photos"
       - "service.name=photo-management"
       - "service.type=web"
@@ -993,6 +952,7 @@ services:
       - "traefik.http.routers.photoprism.tls.certresolver=letsencrypt"
       - "traefik.http.routers.photoprism.tls.domains[0].main=photoprism.xhaos.info"
       - "traefik.http.services.photoprism.loadbalancer.server.port=2342"
+      - "traefik.docker.network=nas_default"  # backend is internal: not routable
       - "traefik.http.routers.photoprism.middlewares=default-chain@file"
     healthcheck:
       # Not `photoprism status`: in 261007 it dials HTTP_HOST (0.0.0.0) and always fails.
@@ -1016,8 +976,6 @@ services:
     expose:
       - 3306
     volumes:
-      - /etc/localtime:/etc/localtime:ro
-      - /etc/timezone:/etc/timezone:ro
       - photoprism-mariadb:/var/lib/mysql
     secrets:
       - source: photoprism_mariadb_password
@@ -1025,6 +983,7 @@ services:
       - source: photoprism_mariadb_root_password
         target: /run/secrets/photoprism_mariadb_root_password
     environment:
+      TZ: "Europe/Athens"
       MARIADB_DATABASE: "photoprism"
       MARIADB_USER: "photoprism"
       MARIADB_PASSWORD_FILE: "/run/secrets/photoprism_mariadb_password"
@@ -1032,7 +991,6 @@ services:
       MARIADB_AUTO_UPGRADE: "1"
       MARIADB_INITDB_SKIP_TZINFO: "1"
     labels:
-      - "com.docker.compose.service=mariadb"
       - "service.group=database"
       - "service.name=mariadb"
       - "service.description=MariaDB - Database Server"
@@ -1066,7 +1024,7 @@ services:
     security_opt:
       - no-new-privileges:true
     networks:
-      - backend
+      - default
     environment:
       - TZ=Europe/Athens
       - FILE__SETTINGS_ENCRYPTION_KEY=/run/secrets/duplicati_settings_encryption_key
@@ -1077,15 +1035,12 @@ services:
       - source: duplicati_webservice_password
         target: /run/secrets/duplicati_webservice_password
     volumes:
-      - /etc/localtime:/etc/localtime:ro
-      - /etc/timezone:/etc/timezone:ro
       - duplicati:/config
       - backup:/backups
       - photos:/source/photos:ro
     expose:
       - 8200
     labels:
-      - "com.docker.compose.service=duplicati"
       - "service.group=backup"
       - "service.name=backup-manager"
       - "service.type=web"
@@ -1125,8 +1080,6 @@ services:
       - source: homeassistant_secrets
         target: /config/secrets.yaml
     volumes:
-      - /etc/localtime:/etc/localtime:ro
-      - /etc/timezone:/etc/timezone:ro
       - homeassistant:/config
       - ./config/homeassistant/configuration.yaml:/config/configuration.yaml
     healthcheck:
@@ -1136,7 +1089,6 @@ services:
       retries: 5
       start_period: 60s
     labels:
-      - "com.docker.compose.service=home-assistant"
       - "service.group=home-automation"
       - "service.name=home-assistant"
       - "service.type=web"
@@ -1159,6 +1111,7 @@ services:
     image: lscr.io/linuxserver/freshrss:1.30.1-ls324@sha256:a374a152f0338f58645fc9a18cf224cc42202103833f55782d02de54ff891ad4
     container_name: freshrss
     restart: unless-stopped
+    runtime: runsc
     read_only: true  # no non-root support: runs as abc 911:1001, PUID/PGID ignored
     tmpfs:
       - /run:exec,uid=1000,gid=1000,mode=0755
@@ -1173,12 +1126,10 @@ services:
     security_opt:
       - no-new-privileges:true
     networks:
-      - backend
+      - default
     environment:
       - TZ=Europe/Athens
     volumes:
-      - /etc/localtime:/etc/localtime:ro
-      - /etc/timezone:/etc/timezone:ro
       - freshrss:/config
     expose:
       - 80
@@ -1189,7 +1140,6 @@ services:
       retries: 3
       start_period: 20s
     labels:
-      - "com.docker.compose.service=freshrss"
       - "service.group=productivity"
       - "service.name=rss-reader"
       - "service.type=web"
@@ -1211,6 +1161,7 @@ services:
     image: adguard/adguardhome:v0.107.79@sha256:abadc6ec47f8ca385cb38f2abfeb11ca6a2b0277964967b1954c63e11b517f4f
     container_name: adguard
     restart: unless-stopped
+    runtime: runsc
     cap_drop:
       - ALL
     cap_add:
@@ -1222,10 +1173,10 @@ services:
     security_opt:
       - no-new-privileges:true
     networks:
-      - backend
+      - default
+    environment:
+      - TZ=Europe/Athens
     volumes:
-      - /etc/localtime:/etc/localtime:ro
-      - /etc/timezone:/etc/timezone:ro
       - adguard-work:/opt/adguardhome/work
       - adguard-conf:/opt/adguardhome/conf
     ports:
@@ -1236,7 +1187,6 @@ services:
       - 80
       - 3000
     labels:
-      - "com.docker.compose.service=adguard"
       - "service.group=network"
       - "service.name=dns-ad-blocking"
       - "service.type=web"
