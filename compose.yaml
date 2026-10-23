@@ -335,7 +335,7 @@ services:
     image: jellyfin/jellyfin:12.2.20261005-225228@sha256:357724bf0ae27a672c7cbaa899db2d9abeb13dbd8657ccce750258a4c059d037
     container_name: jellyfin
     restart: unless-stopped
-    runtime: runsc
+    # Not runsc: gVisor lacks netlink multicast, which .NET's NetworkChange needs (EOPNOTSUPP).
     user: "1000:1000"
     read_only: true
     tmpfs:
