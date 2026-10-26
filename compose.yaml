@@ -350,7 +350,8 @@ services:
       - "traefik.http.services.transmission.loadbalancer.server.port=9091"
       - "traefik.http.routers.transmission.middlewares=default-chain@file"
     healthcheck:
-      test: ["CMD-SHELL", "curl -fs -o /dev/null http://localhost:9091/transmission/web/ || exit 1"]
+      # A port check: with RPC auth on, every HTTP path answers 401, which curl -f counts as down.
+      test: ["CMD-SHELL", "nc -z localhost 9091 || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3
