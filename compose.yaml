@@ -332,7 +332,7 @@ services:
   # Jellyfin
   # ---------------------------------------------------------------------------
   jellyfin:
-    image: jellyfin/jellyfin:12.2.20261005-225228@sha256:357724bf0ae27a672c7cbaa899db2d9abeb13dbd8657ccce750258a4c059d037
+    image: jellyfin/jellyfin:12.3.20261023-013714@sha256:2038fe038ab3876a80f6e7b7e0aef6607b032c7dc0c9b3ad3296d0b2eba3bbb5
     container_name: jellyfin
     restart: unless-stopped
     # Not runsc: gVisor lacks netlink multicast, which .NET's NetworkChange needs (EOPNOTSUPP).
@@ -792,7 +792,7 @@ services:
   # Syncthing
   # ---------------------------------------------------------------------------
   syncthing:
-    image: syncthing/syncthing:2.1.6@sha256:92e9a8bf559062b955ab45c7a60bc33d0b97ebdb1e5e86959b40714b482f740a
+    image: syncthing/syncthing:2.1.7@sha256:2b71da7c0d0a91a6ae5285ad079226fecc0a365d08b27720e1f7037b018f7546
     container_name: syncthing
     hostname: syncthing
     user: "1000:1000"
