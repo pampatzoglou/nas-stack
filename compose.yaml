@@ -443,7 +443,7 @@ services:
   # Sonarr - TV Management
   # ---------------------------------------------------------------------------
   sonarr:
-    image: linuxserver/sonarr:4.0.20.3014-ls326@sha256:b2ce6052dd27ede97749da56958384682f1b2b89c2c78bd0363de9d228b6bcb7
+    image: linuxserver/sonarr:4.0.20.3014-ls326@sha256:f247545d23ba8b233d6604575347e48a623fe6ad75dda02348bf81917f3b5c06
     container_name: sonarr
     restart: unless-stopped
     runtime: runsc
