@@ -240,7 +240,7 @@ services:
     image: lscr.io/linuxserver/qbittorrent:5.2.4_v2.0.15-ls479@sha256:b111319eb7fb541edc2b1c1df9cf82e68cfffd694caa9ed5e8a0eb78a5112533
     container_name: qbittorrent
     restart: unless-stopped
-    runtime: runsc
+    # Not runsc: libtorrent's listen sockets fail with "bind: Not supported" (EOPNOTSUPP), no peers.
     user: "1000:1000"  # PUID/PGID cannot apply on a read-only rootfs
     read_only: true
     tmpfs:
