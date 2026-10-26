@@ -681,7 +681,7 @@ services:
     read_only: true  # no non-root support: runs as abc 911:1001, PUID/PGID ignored
     tmpfs:
       - /run:exec,uid=1000,gid=1000,mode=0755
-      - /tmp:uid=1000,gid=1000,mode=0755
+      - /tmp:mode=1777  # abc (911) writes here; 1000-owned 0755 shuts it out
     cap_drop:
       - ALL
     cap_add:
@@ -737,7 +737,7 @@ services:
     read_only: true  # no non-root support: runs as abc 911:1001, PUID/PGID ignored
     tmpfs:
       - /run:exec,uid=1000,gid=1000,mode=0755
-      - /tmp:uid=1000,gid=1000,mode=0755
+      - /tmp:mode=1777  # abc (911) writes here; 1000-owned 0755 shuts it out
     cap_drop:
       - ALL
     cap_add:
@@ -1082,7 +1082,7 @@ services:
     read_only: true  # no non-root support: runs as abc 911:1001, PUID/PGID ignored
     tmpfs:
       - /run:exec,uid=1000,gid=1000,mode=0755
-      - /tmp:uid=1000,gid=1000,mode=0755
+      - /tmp:mode=1777  # abc (911) writes here; 1000-owned 0755 shuts it out
     cap_drop:
       - ALL
     cap_add:
@@ -1185,7 +1185,7 @@ services:
     read_only: true  # no non-root support: runs as abc 911:1001, PUID/PGID ignored
     tmpfs:
       - /run:exec,uid=1000,gid=1000,mode=0755
-      - /tmp:uid=1000,gid=1000,mode=0755
+      - /tmp:mode=1777  # the cron job, as abc, appends to /tmp/FreshRSS.log
     cap_drop:
       - ALL
     cap_add:
