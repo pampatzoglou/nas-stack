@@ -327,7 +327,13 @@ services:
     secrets:
       - transmission_rpc_password
     volumes:
-      - transmission:/config
+      # nocopy: the image's /config is a root-owned VOLUME, and copying it into the empty volume
+      # chowns the host directory to root, so the 1000 user cannot write settings.json.
+      - type: volume
+        source: transmission
+        target: /config
+        volume:
+          nocopy: true
       - torrent:/downloads
       - torrent_tmp:/downloads/incomplete
     expose:
