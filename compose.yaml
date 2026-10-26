@@ -148,6 +148,12 @@ volumes:
       type: none
       o: bind
       device: /media/volumes/qbittorrent
+  transmission:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /media/volumes/transmission
   nzbget:
     driver: local
     driver_opts:
@@ -195,6 +201,8 @@ secrets:
     file: /opt/secrets/nas-stack/photoprism_oidc_secret
   prowlarr_api_key:
     file: /opt/secrets/nas-stack/prowlarr_api_key
+  transmission_rpc_password:
+    file: /opt/secrets/nas-stack/transmission_rpc_password
   duplicati_settings_encryption_key:
     file: /opt/secrets/nas-stack/duplicati_settings_encryption_key
   duplicati_webservice_password:
@@ -282,6 +290,67 @@ services:
       - "traefik.http.routers.qbittorrent.middlewares=qbittorrent-headers@docker,default-chain@file"
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:8080 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  # ---------------------------------------------------------------------------
+  # Transmission - BitTorrent client under gVisor, on trial to replace qBittorrent
+  # ---------------------------------------------------------------------------
+  # Peer port 51414 while qBittorrent holds 51413; take 51413 over at cutover.
+  transmission:
+    image: lscr.io/linuxserver/transmission:4.0.6-r4-ls311@sha256:e12eb7a0f16da79d6eff91a9c2fdfda3ae09306fa9447b826cbcee77f0969c18
+    container_name: transmission
+    restart: unless-stopped
+    runtime: runsc
+    user: "1000:1000"  # PUID/PGID cannot apply on a read-only rootfs
+    read_only: true
+    tmpfs:
+      - /run:exec,uid=1000,gid=1000,mode=0755
+      - /tmp:uid=1000,gid=1000,mode=0755
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - media
+    environment:
+      - TZ=Europe/Athens
+      - PEERPORT=51414
+      - USER=admin
+      - FILE__PASS=/run/secrets/transmission_rpc_password
+      # RPC clients: loopback, and the media network (the *arrs, and Traefik via its gateway).
+      - WHITELIST=127.0.0.1,172.21.*.*
+      # Host headers the RPC accepts (DNS-rebinding guard): Traefik's, and the *arrs' service name.
+      - HOST_WHITELIST=transmission.xhaos.info,transmission
+    secrets:
+      - transmission_rpc_password
+    volumes:
+      - transmission:/config
+      - torrent:/downloads
+      - torrent_tmp:/downloads/incomplete
+    expose:
+      - 9091
+    ports:
+      - 51414:51414
+      - 51414:51414/udp
+    labels:
+      - "service.group=media"
+      - "service.name=torrent-client"
+      - "service.type=web"
+      - "service.description=Transmission - BitTorrent Client"
+      - "service.port=9091"
+      - "traefik.enable=true"
+      - "traefik.http.routers.transmission.rule=Host(`transmission.xhaos.info`)"
+      - "traefik.http.routers.transmission.entrypoints=websecure"
+      - "traefik.http.routers.transmission.tls=true"
+      - "traefik.http.routers.transmission.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.transmission.tls.domains[0].main=transmission.xhaos.info"
+      - "traefik.http.services.transmission.loadbalancer.server.port=9091"
+      - "traefik.http.routers.transmission.middlewares=default-chain@file"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fs -o /dev/null http://localhost:9091/transmission/web/ || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3

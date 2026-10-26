@@ -20,7 +20,8 @@ provisioned by Ansible in
 - **Secrets**: files under `/opt/secrets/nas-stack/`, root-owned, `0600`. Not in git (the
   repository is public); to move to doco-cd's Bitwarden integration later. Compose mounts them
   with the host file's owner and mode (a secret's `uid`/`gid`/`mode` only apply in Swarm), so
-  `prowlarr_api_key` must be readable by `1000`, the user prowlarr runs as.
+  `prowlarr_api_key` and `transmission_rpc_password` must be readable by `1000`, the user
+  prowlarr and transmission run as.
 
   | File                                   | Used by                 |
   |----------------------------------------|-------------------------|
@@ -30,6 +31,7 @@ provisioned by Ansible in
   | `photoprism_mariadb_password`          | photoprism, its mariadb |
   | `photoprism_mariadb_root_password`     | photoprism's mariadb    |
   | `prowlarr_api_key`                     | prowlarr                |
+  | `transmission_rpc_password`            | transmission (RPC/WebUI user `admin`) |
   | `duplicati_settings_encryption_key`    | duplicati               |
   | `duplicati_webservice_password`        | duplicati               |
   | `homeassistant_secrets_yaml`           | home-assistant (`secrets.yaml`) |
