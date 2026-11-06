@@ -10,10 +10,21 @@ provisioned by Ansible in
 |-----------------------------------------|---------------------------------------------------------|
 | `compose.yaml`                          | the stack                                               |
 | `.doco-cd.yml`                          | doco-cd's deployment config                             |
+| `host/`                                 | host files installed by hand (not deployed by doco-cd)  |
 | `config/homeassistant/configuration.yaml` | Home Assistant's config, bind-mounted read from the repo |
 
 ## Host prerequisites
 
+- **IoT VLAN**: Home Assistant (host network) discovers Gree ACs by broadcast, so the NAS has a leg
+  on the IoT VLAN (50, `192.168.50.4`). The MikroTik bridge has `vlan-filtering=no`, so tagged
+  frames already reach the NAS's port; nothing changes on the router. Installed by hand:
+
+  ```sh
+  sudo install -m 600 host/netplan/60-iot-vlan.yaml /etc/netplan/ && sudo netplan apply
+  sudo install -m 644 host/nftables.d/home-iot.nft /etc/nftables.d/ && sudo systemctl reload nftables
+  ```
+
+  Then enable `enp5s0.50` in Home Assistant under Settings → System → Network.
 - **Data**: named volumes bind to host directories under `/media/` (`/media/movies`,
   `/media/volumes/<service>`, ...). They must exist before a deploy, or `docker compose up` fails.
   Nothing persistent goes in the repository: doco-cd deploys each revision from its own copy.

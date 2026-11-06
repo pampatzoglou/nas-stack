@@ -1188,7 +1188,10 @@ services:
     container_name: freshrss
     restart: unless-stopped
     runtime: runsc
-    read_only: true  # no non-root support: runs as abc 911:1001, PUID/PGID ignored
+    # init swaps /app/www/{data,extensions} for symlinks into /config at every start; a read-only
+    # rootfs leaves the root-owned image copies in place, and abc cannot write to them.
+    # No non-root support: runs as abc 911:1001, PUID/PGID ignored.
+    read_only: false
     tmpfs:
       - /run:exec,uid=1000,gid=1000,mode=0755
       - /tmp:mode=1777  # the cron job, as abc, appends to /tmp/FreshRSS.log
