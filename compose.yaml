@@ -1202,6 +1202,7 @@ services:
       - SETUID
       - SETGID
       - DAC_OVERRIDE
+      - FOWNER  # init chmods /config/{nginx,log}, owned by abc, not root
     security_opt:
       - no-new-privileges:true
     networks:
