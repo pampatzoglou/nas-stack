@@ -481,7 +481,7 @@ services:
     networks:
       - media
     depends_on:
-      qbittorrent:
+      transmission:
         condition: service_healthy
       prowlarr:
         condition: service_healthy
@@ -535,7 +535,7 @@ services:
     networks:
       - media
     depends_on:
-      qbittorrent:
+      transmission:
         condition: service_healthy
       prowlarr:
         condition: service_healthy
@@ -642,7 +642,7 @@ services:
     networks:
       - media
     depends_on:
-      qbittorrent:
+      transmission:
         condition: service_healthy
       prowlarr:
         condition: service_healthy
