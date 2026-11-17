@@ -408,7 +408,7 @@ services:
   # Jellyfin
   # ---------------------------------------------------------------------------
   jellyfin:
-    image: jellyfin/jellyfin:12.2.20261005-225228@sha256:357724bf0ae27a672c7cbaa899db2d9abeb13dbd8657ccce750258a4c059d037
+    image: jellyfin/jellyfin:12.4.20261026-211555@sha256:fea863d0cd9ec445985d9c75fc6ed64e38a1d2766cf0c250a33d553f4fc1b771
     container_name: jellyfin
     restart: unless-stopped
     # Not runsc: gVisor lacks netlink multicast, which .NET's NetworkChange needs (EOPNOTSUPP).
@@ -868,7 +868,7 @@ services:
   # Syncthing
   # ---------------------------------------------------------------------------
   syncthing:
-    image: syncthing/syncthing:2.1.6@sha256:92e9a8bf559062b955ab45c7a60bc33d0b97ebdb1e5e86959b40714b482f740a
+    image: syncthing/syncthing:2.1.7@sha256:2b71da7c0d0a91a6ae5285ad079226fecc0a365d08b27720e1f7037b018f7546
     container_name: syncthing
     hostname: syncthing
     user: "1000:1000"
@@ -1238,7 +1238,7 @@ services:
   # AdGuard Home - DNS and Ad Blocking
   # ---------------------------------------------------------------------------
   adguard:
-    image: adguard/adguardhome:v0.107.79@sha256:abadc6ec47f8ca385cb38f2abfeb11ca6a2b0277964967b1954c63e11b517f4f
+    image: adguard/adguardhome:v0.107.80@sha256:e2e1b48c832f7705be915873f95de0d5114de573736441d7f2923a8a6293027c
     container_name: adguard
     restart: unless-stopped
     runtime: runsc
