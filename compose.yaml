@@ -46,12 +46,12 @@ volumes:
       type: none
       o: bind
       device: /media/downloads/torrent
-  torrent_tmp:
-    driver: local
-    driver_opts:
-      type: tmpfs
-      device: tmpfs
-      o: size=6g,uid=1000,gid=1000
+  # torrent_tmp:
+  #   driver: local
+  #   driver_opts:
+  #     type: tmpfs
+  #     device: tmpfs
+  #     o: size=6g,uid=1000,gid=1000
   photoprism:
     driver: local
     driver_opts:
@@ -335,7 +335,7 @@ services:
         volume:
           nocopy: true
       - torrent:/downloads
-      - torrent_tmp:/downloads/incomplete
+      # - torrent_tmp:/downloads/incomplete
     expose:
       - 9091
     ports:
