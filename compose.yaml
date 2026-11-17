@@ -142,12 +142,12 @@ volumes:
       type: none
       o: bind
       device: /media/volumes/freshrss
-  qbittorrent:
-    driver: local
-    driver_opts:
-      type: none
-      o: bind
-      device: /media/volumes/qbittorrent
+  # qbittorrent:
+  #   driver: local
+  #   driver_opts:
+  #     type: none
+  #     o: bind
+  #     device: /media/volumes/qbittorrent
   transmission:
     driver: local
     driver_opts:
@@ -244,56 +244,56 @@ services:
   # ---------------------------------------------------------------------------
   # qBittorrent
   # ---------------------------------------------------------------------------
-  qbittorrent:
-    image: lscr.io/linuxserver/qbittorrent:5.2.4_v2.0.15-ls479@sha256:b111319eb7fb541edc2b1c1df9cf82e68cfffd694caa9ed5e8a0eb78a5112533
-    container_name: qbittorrent
-    restart: unless-stopped
-    # Not runsc: libtorrent's listen sockets fail with "bind: Not supported" (EOPNOTSUPP), no peers.
-    user: "1000:1000"  # PUID/PGID cannot apply on a read-only rootfs
-    read_only: true
-    tmpfs:
-      - /run:exec,uid=1000,gid=1000,mode=0755
-      - /tmp:uid=1000,gid=1000,mode=0755
-    cap_drop:
-      - ALL
-    security_opt:
-      - no-new-privileges:true
-    networks:
-      - media
-    environment:
-      - TZ=Europe/Athens
-      - WEBUI_PORT=8080
-      - TORRENTING_PORT=51413
-    volumes:
-      - qbittorrent:/config
-      - torrent:/downloads
-      - torrent_tmp:/downloads/incomplete
-    expose:
-      - 8080
-    ports:
-      - 51413:51413
-      - 51413:51413/udp
-    labels:
-      - "service.group=media"
-      - "service.name=torrent-client"
-      - "service.type=web"
-      - "service.description=qBittorrent - BitTorrent Client"
-      - "service.port=8080"
-      - "traefik.enable=true"
-      - "traefik.http.routers.qbittorrent.rule=Host(`qbittorrent.xhaos.info`)"
-      - "traefik.http.routers.qbittorrent.entrypoints=websecure"
-      - "traefik.http.routers.qbittorrent.tls=true"
-      - "traefik.http.routers.qbittorrent.tls.certresolver=letsencrypt"
-      - "traefik.http.routers.qbittorrent.tls.domains[0].main=qbittorrent.xhaos.info"
-      - "traefik.http.services.qbittorrent.loadbalancer.server.port=8080"
-      - "traefik.http.middlewares.qbittorrent-headers.headers.customrequestheaders.X-Forwarded-Host=qbittorrent.xhaos.info"
-      - "traefik.http.routers.qbittorrent.middlewares=qbittorrent-headers@docker,default-chain@file"
-    healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:8080 || exit 1"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 30s
+  # qbittorrent:
+  #   image: lscr.io/linuxserver/qbittorrent:5.2.4_v2.0.15-ls479@sha256:b111319eb7fb541edc2b1c1df9cf82e68cfffd694caa9ed5e8a0eb78a5112533
+  #   container_name: qbittorrent
+  #   restart: unless-stopped
+  #   # Not runsc: libtorrent's listen sockets fail with "bind: Not supported" (EOPNOTSUPP), no peers.
+  #   user: "1000:1000"  # PUID/PGID cannot apply on a read-only rootfs
+  #   read_only: true
+  #   tmpfs:
+  #     - /run:exec,uid=1000,gid=1000,mode=0755
+  #     - /tmp:uid=1000,gid=1000,mode=0755
+  #   cap_drop:
+  #     - ALL
+  #   security_opt:
+  #     - no-new-privileges:true
+  #   networks:
+  #     - media
+  #   environment:
+  #     - TZ=Europe/Athens
+  #     - WEBUI_PORT=8080
+  #     - TORRENTING_PORT=51413
+  #   volumes:
+  #     - qbittorrent:/config
+  #     - torrent:/downloads
+  #     - torrent_tmp:/downloads/incomplete
+  #   expose:
+  #     - 8080
+  #   ports:
+  #     - 51413:51413
+  #     - 51413:51413/udp
+  #   labels:
+  #     - "service.group=media"
+  #     - "service.name=torrent-client"
+  #     - "service.type=web"
+  #     - "service.description=qBittorrent - BitTorrent Client"
+  #     - "service.port=8080"
+  #     - "traefik.enable=true"
+  #     - "traefik.http.routers.qbittorrent.rule=Host(`qbittorrent.xhaos.info`)"
+  #     - "traefik.http.routers.qbittorrent.entrypoints=websecure"
+  #     - "traefik.http.routers.qbittorrent.tls=true"
+  #     - "traefik.http.routers.qbittorrent.tls.certresolver=letsencrypt"
+  #     - "traefik.http.routers.qbittorrent.tls.domains[0].main=qbittorrent.xhaos.info"
+  #     - "traefik.http.services.qbittorrent.loadbalancer.server.port=8080"
+  #     - "traefik.http.middlewares.qbittorrent-headers.headers.customrequestheaders.X-Forwarded-Host=qbittorrent.xhaos.info"
+  #     - "traefik.http.routers.qbittorrent.middlewares=qbittorrent-headers@docker,default-chain@file"
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "curl -f http://localhost:8080 || exit 1"]
+  #     interval: 30s
+  #     timeout: 10s
+  #     retries: 3
+  #     start_period: 30s
 
   # ---------------------------------------------------------------------------
   # Transmission - BitTorrent client under gVisor, on trial to replace qBittorrent
@@ -317,7 +317,7 @@ services:
       - media
     environment:
       - TZ=Europe/Athens
-      - PEERPORT=51414
+      - PEERPORT=51413
       - USER=admin
       - FILE__PASS=/run/secrets/transmission_rpc_password
       # RPC clients: loopback, and the media network (the *arrs, and Traefik via its gateway).
@@ -339,8 +339,8 @@ services:
     expose:
       - 9091
     ports:
-      - 51414:51414
-      - 51414:51414/udp
+      - 51413:51413
+      - 51413:51413/udp
     labels:
       - "service.group=media"
       - "service.name=torrent-client"
