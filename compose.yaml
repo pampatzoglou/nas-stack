@@ -300,7 +300,7 @@ services:
   # ---------------------------------------------------------------------------
   # Peer port 51414 while qBittorrent holds 51413; take 51413 over at cutover.
   transmission:
-    image: lscr.io/linuxserver/transmission:4.0.6-r4-ls311@sha256:e12eb7a0f16da79d6eff91a9c2fdfda3ae09306fa9447b826cbcee77f0969c18
+    image: lscr.io/linuxserver/transmission:4.0.6-r4-ls311@sha256:991b4aed6213fa04e93701523d6303deba8c13dc3d351b2f8cc7178e823fdd20
     container_name: transmission
     restart: unless-stopped
     runtime: runsc
